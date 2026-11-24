@@ -1,0 +1,35 @@
+[project]
+name = "telugu-tech-agent"
+version = "0.1.0"
+description = "Telugu Tech Storytelling AI Agent: faceless Telugu technology YouTube pipeline built on MoneyPrinterTurbo"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "pillow>=11.0",
+    "numpy>=1.26",
+    "pyyaml>=6.0",
+    "requests>=2.32",
+    "edge-tts==7.3.1",
+    "certifi",
+]
+
+[project.optional-dependencies]
+youtube = [
+    "google-api-python-client>=2.150",
+    "google-auth>=2.35",
+    "google-auth-oauthlib>=1.2",
+]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+telugu-tech = "telugu_tech.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["telugu_tech"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: needs ffmpeg and takes several seconds"]
