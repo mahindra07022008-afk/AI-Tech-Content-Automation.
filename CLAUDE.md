@@ -14,7 +14,9 @@ telugu_tech/               python package (CLI: `.venv/bin/telugu-tech`)
   storyboard.py            storyboard schema, validation (8-part structure, Telugu ratio, sources), LLM generation
   tts.py                   Edge TTS Telugu voices, per-scene synthesis, section prosody
   audio.py                 narration timeline, original procedural music + SFX, ducking, 2-pass loudnorm
-  visuals.py               original motion-graphics engine (Pillow+raqm → FFmpeg), captions, transitions
+  visuals.py               classic motion-graphics engine (Pillow+raqm → FFmpeg), captions, transitions
+  premium.py               PREMIUM engine: word timings, keywords, beat grid, props → Remotion render, FFmpeg grade, SFX plan
+  reference.py             reference MP4 analysis (cuts, motion, colour, caption band, loudness, tempo) → style profile
   engine.py                MoneyPrinterTurbo final assembly (primary) + logged FFmpeg fallback
   subtitles.py             Telugu Unicode + Roman Telugu SRT
   thumbnail.py / seo.py    thumbnail, Shorts cover, titles/description/hashtags/chapters
@@ -25,6 +27,9 @@ telugu_tech/               python package (CLI: `.venv/bin/telugu-tech`)
   doctor.py                diagnostics + safe auto-repair
   errors.py / db.py        error taxonomy, redaction, bounded retries; SQLite history & checkpoints
 scripts/mpt_llm.py         bridge: runs inside MPT's venv, calls MPT's claude_code provider
+remotion/                  Remotion 4.0.540 project (pinned, package-lock.json): src/components (Camera, Background,
+                           Visuals, Captions, Icons), src/presets (transitions, styles). node_modules + fonts gitignored.
+.claude/skills/premium-video-editor/  /premium-video-editor skill (analyze-reference, generate, preview, fix-errors, report)
 examples/                  demo storyboard (GitHub explainer Short)
 tests/                     pytest suite (`.venv/bin/pytest -q`; integration tests need ffmpeg)
 vendor/MoneyPrinterTurbo/  render engine, pinned commit, gitignored (installed by `telugu-tech setup`)
@@ -40,6 +45,12 @@ Why MPT gets one pre-timed material clip: scenes are timed from real narration a
 with `--video-source local`, sequential concat, no transitions, custom audio and BGM off, which was
 verified to preserve frame timing. Captions are burned in by our engine (Roman Telugu) because MPT
 subtitles would be Telugu script from the narration.
+
+Premium engine (`engine.visual_engine: premium`): scene starts are snapped to the music beat grid,
+Edge TTS word boundaries give exact word-by-word caption timing (keep `caption_roman` word-aligned with
+`narration_te`), Remotion renders silent 1080×1920 motion graphics from `premium_props.json`, FFmpeg
+applies the grade (bloom, colour balance, contrast, vignette, grain). Fallback to classic is automatic
+and logged. Style = house preset unless a reference profile (`data/styles/ref-*.json`) is supplied.
 
 ## Rules
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -117,7 +118,8 @@ def cmd_generate(args, kind: str):
         row = db.get_job(args.resume)
         if not row:
             raise SystemExit(f"unknown job {args.resume}")
-        res = pipeline.run(cfg, db, kind=row["kind"], topic=row["topic"], job_id=row["job_id"], redo_from=args.redo_from)
+        res = pipeline.run(cfg, db, kind=row["kind"], topic=row["topic"], job_id=row["job_id"], redo_from=args.redo_from,
+                           visual_engine=getattr(args, "engine", None), style_profile=getattr(args, "style_profile", None))
         _print(res)
         return 0 if res["quality_passed"] else 2
     sources: list[dict] = [{"id": f"s{i + 1}", "url": u, "title": u, "publisher": "", "published": "user-provided"}
@@ -143,7 +145,8 @@ def cmd_generate(args, kind: str):
         raise SystemExit(f"Duplicate topic: similar to already-used '{dup['title']}' (use --allow-duplicate to override)")
     voice = {"mohan": cfg.get("voice", "primary"), "shruti": cfg.get("voice", "alternate")}.get(args.voice, args.voice)
     res = pipeline.run(cfg, db, kind=kind, topic=topic, storyboard_path=args.storyboard, sources=sources,
-                       job_id=args.job_id, voice=voice)
+                       job_id=args.job_id, voice=voice, visual_engine=getattr(args, "engine", None),
+                       style_profile=getattr(args, "style_profile", None))
     if topic_id:
         db.set_topic_status(topic_id, "used")
     else:
@@ -227,6 +230,11 @@ def cmd_status(args):
     print("== Telugu Tech Storytelling AI Agent ==")
     print(f"Engine: MoneyPrinterTurbo {'installed' if mpt_ok else 'MISSING'} at {cfg.mpt_home}")
     print(f"LLM: {cfg.get('llm', 'provider')} (claude CLI: {shutil.which('claude') or 'not found'})")
+    from .premium import find_browser, remotion_dir
+    rem_ok = (remotion_dir(cfg) / "node_modules" / "@remotion" / "cli").is_dir()
+    print(f"Visual engine: {cfg.get('engine', 'visual_engine', default='classic')} | Remotion {'installed' if rem_ok else 'MISSING'}"
+          f" | browser {'found' if find_browser(cfg) else 'not found'} | style profile: "
+          f"{cfg.get('premium', 'style_profile', default='') or 'house preset (cinematic_tech)'}")
     print(f"Voice: {cfg.get('voice', 'primary')} / alt {cfg.get('voice', 'alternate')}")
     a = youtube.auth_status(cfg)
     print(f"YouTube: enabled={cfg.get('publishing', 'youtube_enabled')} client_secret={a['client_secrets_present']} "
@@ -323,6 +331,82 @@ def cmd_schedule(args):
     return 0
 
 
+def cmd_premium(args):
+    """/premium-video-editor commands."""
+    cfg, db = _ctx(args)
+    from . import reference
+    if args.action == "analyze-reference":
+        if not args.video:
+            print("BLOCKED: no reference MP4 supplied. Instagram/TikTok links need a logged-in browser, so this tool "
+                  "does not download them. Save the reel yourself (from your own account or with the creator's "
+                  "permission) and run:\n  telugu-tech premium analyze-reference --video /path/to/reference.mp4", file=sys.stderr)
+            return 3
+        prof = reference.analyze(args.video, cfg.data_dir / "styles", args.name)
+        print(Path(prof["files"]["report"]).read_text(encoding="utf-8"))
+        print(f"Style profile: {prof['files']['profile']}")
+        if args.activate:
+            _set_yaml_value(cfg.path, "  style_profile:", f'  style_profile: "{os.path.relpath(prof["files"]["profile"], cfg.root)}"')
+            print("Activated as premium.style_profile in config/project.yaml")
+        return 0
+    if args.action == "generate":
+        ns = argparse.Namespace(**{**vars(args), "engine": "premium"})
+        return cmd_generate(ns, "long" if args.long else "short")
+    if args.action == "preview":
+        return cmd_preview(argparse.Namespace(config=args.config, job=args.job))
+    if args.action == "fix-errors":
+        d = doctor.Doctor(cfg, fix=True)
+        d.smoke = True
+        res = d.run(network=not args.offline)
+        for r in res:
+            if not r["ok"] or r["repaired"] or "Remotion" in r["check"] or "Chrome" in r["check"] or "node" in r["check"]:
+                print(f"{'✔' if r['ok'] else '✖'} {r['check']}: {r['detail']}" + (f" [repaired: {r['repaired']}]" if r["repaired"] else ""))
+        for j in db.jobs(status="failed", limit=10):
+            print(f"↻ resuming {j['job_id']} with the premium engine from its checkpoint…")
+            try:
+                r = pipeline.run(cfg, db, kind=j["kind"], topic=j["topic"], job_id=j["job_id"], visual_engine="premium")
+                print(f"  ✔ quality {'PASS' if r['quality_passed'] else 'FAIL'}")
+            except AgentError as exc:
+                print(f"  ✖ [{exc.category.value}] {redact(str(exc))[:200]}")
+        return 0
+    if args.action == "report":
+        rows = []
+        for j in db.jobs(limit=30):
+            cp = db.checkpoint(j["job_id"])
+            eng = cp.get("visuals", {}).get("engine", "")
+            if not eng:
+                continue
+            qa_f = cfg.jobs_dir / j["job_id"] / "final" / "quality_report.json"
+            qa = json.loads(qa_f.read_text(encoding="utf-8")) if qa_f.is_file() else {}
+            props_f = cfg.jobs_dir / j["job_id"] / "premium_props.json"
+            props = json.loads(props_f.read_text(encoding="utf-8")) if props_f.is_file() else {}
+            ev_f = cfg.jobs_dir / j["job_id"] / "sfx_events.json"
+            rows.append({"job": j["job_id"], "engine": eng, "style": cp.get("visuals", {}).get("style_source", "—"),
+                         "duration": qa.get("duration"), "quality": "PASS" if qa.get("passed") else "FAIL" if qa else "—",
+                         "failed": [c["check"] for c in qa.get("checks", []) if not c["passed"]],
+                         "transitions": sorted({s.get("transition") for s in props.get("scenes", [])}),
+                         "cameras": sorted({s.get("camera") for s in props.get("scenes", [])}),
+                         "visuals": [s["visual"]["type"] for s in props.get("scenes", [])],
+                         "sfx": sorted({e[1] for e in json.loads(ev_f.read_text())}) if ev_f.is_file() else [],
+                         "caption_words": len(props.get("words", []))})
+        out = cfg.data_dir / "reports" / "premium-report.json"
+        out.write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
+        for r in rows:
+            print(f"- {r['job']}: {r['engine']} | style {r['style']} | {r['duration'] or 0:.1f}s | quality {r['quality']}"
+                  + (f" (failed: {', '.join(r['failed'])})" if r["failed"] else ""))
+            if r["visuals"]:
+                print(f"    visuals: {', '.join(r['visuals'])}\n    transitions: {', '.join(r['transitions'])} | "
+                      f"cameras: {', '.join(r['cameras'])} | sfx: {', '.join(r['sfx'])} | caption words: {r['caption_words']}")
+        print(f"Saved: {out}")
+        return 0
+    return 1
+
+
+def _set_yaml_value(path: Path, prefix: str, new_line: str) -> None:
+    lines = Path(path).read_text(encoding="utf-8").splitlines()
+    lines = [new_line + "   # set by premium analyze-reference" if l.startswith(prefix) else l for l in lines]
+    Path(path).write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def _run_scheduled(cfg, db, job):
     ns = argparse.Namespace(config=None, topic=None, storyboard=None, source=None, category=job.get("category"),
                             allow_duplicate=False, voice="mohan", job_id=None, resume=None, redo_from=None)
@@ -361,6 +445,8 @@ def build_parser() -> argparse.ArgumentParser:
         s.add_argument("--resume", help="resume a job id from its checkpoint")
         s.add_argument("--redo-from", choices=pipeline.STAGES, help="with --resume: recompute this stage and later ones")
         s.add_argument("--allow-duplicate", action="store_true")
+        s.add_argument("--engine", choices=["premium", "classic"], help="visual engine (default: engine.visual_engine)")
+        s.add_argument("--style-profile", help="style profile JSON (from `premium analyze-reference`)")
 
     s = sub.add_parser("preview", help="local preview page + contact sheet from the rendered file")
     s.add_argument("--job")
@@ -390,6 +476,25 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("name", nargs="?")
     s.add_argument("--approve", action="store_true")
 
+    s = sub.add_parser("premium", help="premium cinematic editor: analyze-reference | generate | preview | fix-errors | report")
+    s.add_argument("action", choices=["analyze-reference", "generate", "preview", "fix-errors", "report"])
+    s.add_argument("--video", help="reference MP4 (analyze-reference)")
+    s.add_argument("--name", help="name for the style profile")
+    s.add_argument("--activate", action="store_true", help="make the analysed profile the default premium style")
+    s.add_argument("--long", action="store_true", help="generate a long video instead of a Short")
+    s.add_argument("--topic")
+    s.add_argument("--storyboard")
+    s.add_argument("--source", action="append")
+    s.add_argument("--category", default=None)
+    s.add_argument("--voice", default="mohan")
+    s.add_argument("--job-id")
+    s.add_argument("--job", help="job for preview")
+    s.add_argument("--resume")
+    s.add_argument("--redo-from", choices=pipeline.STAGES)
+    s.add_argument("--allow-duplicate", action="store_true")
+    s.add_argument("--style-profile")
+    s.add_argument("--offline", action="store_true")
+
     s = sub.add_parser("webui", help="run MoneyPrinterTurbo WebUI on 127.0.0.1")
     s.add_argument("--port", type=int, default=8501)
     return p
@@ -400,7 +505,7 @@ def main(argv: list[str] | None = None) -> int:
     handlers = {
         "setup": cmd_setup, "research": cmd_research, "preview": cmd_preview, "publish": cmd_publish,
         "status": cmd_status, "fix-errors": cmd_fix_errors, "report": cmd_report, "schedule": cmd_schedule,
-        "webui": cmd_webui,
+        "webui": cmd_webui, "premium": cmd_premium,
         "generate-short": lambda a: cmd_generate(a, "short"), "generate-long": lambda a: cmd_generate(a, "long"),
     }
     try:

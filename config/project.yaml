@@ -18,6 +18,17 @@ engine:
   # If MoneyPrinterTurbo fails 3 times, fall back to a direct FFmpeg mux
   # (logged as a repaired error, never silent).
   ffmpeg_fallback: true
+  # Visual engine for new videos: premium (Remotion + FFmpeg grade) | classic (Pillow + FFmpeg).
+  visual_engine: premium   # switched to premium after the 2026-11-24 demo passed 23/23 quality checks
+
+premium:
+  remotion_dir: remotion
+  # Style profile JSON from `telugu-tech premium analyze-reference` (empty = house "cinematic_tech" preset).
+  style_profile: ""
+  browser_executable: ""        # empty = auto-detect pre-installed Chrome headless shell / Chromium
+  concurrency: 4
+  render_timeout_seconds: 2400
+  fallback_to_classic: true     # if Remotion fails 3x, render with the classic engine (logged)
 
 llm:
   # Official MoneyPrinterTurbo provider that runs the logged-in `claude` CLI headless.
@@ -73,6 +84,7 @@ branding:
   accent: "#22D3EE"       # cyan
   highlight: "#FACC15"    # yellow (active caption word)
   bg_top: "#0B1020"
+  premium_bg_top: "#070B18"
   bg_bottom: "#1E1B4B"
   text: "#F8FAFC"
 

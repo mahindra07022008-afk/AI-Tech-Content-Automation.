@@ -68,7 +68,7 @@ def synthesize(text: str, out_mp3: Path, voice: str, rate: str = "+0%", pitch: s
 
     async def go():
         comm = edge_tts.Communicate(clean_for_speech(text), voice, rate=rate, pitch=pitch,
-                                    boundary="SentenceBoundary")
+                                    boundary="WordBoundary")
         boundaries = []
         with open(out_mp3, "wb") as fh:
             async for chunk in comm.stream():
@@ -122,7 +122,7 @@ def voice_scenes(storyboard: dict, out_dir: Path, cfg, voice: str | None = None,
         p = prosody.get(sc["section"], {})
         rate = combine_rate(p.get("rate", cfg.get("voice", "rate", default="+0%")), global_rate_adjust)
         pitch = p.get("pitch", "+0Hz")
-        key = json.dumps([sc["narration_te"], voice, rate, pitch], ensure_ascii=False)
+        key = json.dumps([sc["narration_te"], voice, rate, pitch, "words-v1"], ensure_ascii=False)
         mp3 = out_dir / f"scene_{i + 1:03d}.mp3"
         meta = out_dir / f"scene_{i + 1:03d}.json"
         if mp3.is_file() and meta.is_file():

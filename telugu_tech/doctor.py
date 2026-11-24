@@ -170,12 +170,58 @@ class Doctor:
         r = _run(["git", "check-ignore", "-q", ".env"], cwd=self.cfg.root)
         self.add(".env git-ignored", r.returncode == 0)
 
+    def check_premium(self, smoke: bool = False):
+        """Remotion premium engine: node, packages (npm ci from lockfile), fonts, browser, optional still render."""
+        from .premium import find_browser, remotion_dir
+        rdir = remotion_dir(self.cfg)
+        node, npm = shutil.which("node"), shutil.which("npm")
+        self.add("node (Remotion)", bool(node), _run([node, "--version"]).stdout.strip() if node else "not found",
+                 Category.DEPENDENCY)
+        if not (node and npm and (rdir / "package.json").is_file()):
+            self.add("Remotion project", False, str(rdir), Category.DEPENDENCY)
+            return
+        mods = rdir / "node_modules" / "@remotion" / "cli"
+        repaired = ""
+        if not mods.is_dir() and self.fix:
+            r = _run([npm, "ci", "--no-audit", "--no-fund"], cwd=rdir, timeout=1800)
+            repaired = "npm ci (lockfile)" if r.returncode == 0 else f"npm ci failed: {r.stderr[-150:]}"
+        ver = ""
+        pj = rdir / "node_modules" / "remotion" / "package.json"
+        if pj.is_file():
+            import json as _j
+            ver = _j.loads(pj.read_text())["version"]
+        self.add("Remotion packages", mods.is_dir(), f"remotion {ver or 'missing'}", Category.DEPENDENCY, repaired)
+        fonts_dir = rdir / "public" / "fonts"
+        need = {"NotoSansDisplay-Bold.ttf", "NotoSansTelugu-Bold.ttf", "NotoSansMono-Bold.ttf"}
+        missing = [f for f in need if not (fonts_dir / f).is_file()]
+        repaired = ""
+        if missing and self.fix:
+            fonts_dir.mkdir(parents=True, exist_ok=True)
+            for f in missing:
+                src = Path("/usr/share/fonts/truetype/noto") / f
+                if src.is_file():
+                    shutil.copy2(src, fonts_dir / f)
+            missing = [f for f in need if not (fonts_dir / f).is_file()]
+            repaired = "copied Noto fonts into remotion/public/fonts"
+        self.add("Remotion fonts (Telugu + display + mono)", not missing, ", ".join(missing) or "ok", Category.FONT, repaired)
+        b = find_browser(self.cfg)
+        self.add("Chrome headless shell for Remotion", bool(b), b or "none (Remotion would try to download one)",
+                 Category.DEPENDENCY)
+        if smoke and mods.is_dir():
+            out = rdir / "out" / "smoke.png"
+            cmd = ["npx", "remotion", "still", "src/index.ts", "TeluguTechShort", str(out), "--frame=150", "--gl=swangle",
+                   "--log=error"] + ([f"--browser-executable={b}"] if b else [])
+            r = _run(cmd, cwd=rdir, timeout=600)
+            self.add("Remotion smoke render (still)", r.returncode == 0 and out.is_file(),
+                     str(out) if r.returncode == 0 else r.stderr[-200:], Category.RENDER)
+
     def run(self, network: bool = True) -> list[dict]:
         self.check_binaries()
         self.check_config()
         self.check_fonts()
         self.ensure_mpt()
         self.check_secrets()
+        self.check_premium(smoke=getattr(self, "smoke", False))
         if network:
             self.check_voice()
         return self.results
