@@ -57,6 +57,15 @@ Headless/scheduled mode (no interactive Claude): `telugu-tech generate-short --c
 verified topic and asks Claude through MoneyPrinterTurbo's `claude_code` provider, validating and
 re-prompting up to 3 times. This consumes Claude subscription usage — keep it to the schedule.
 
+## Visual engine (premium editor integration)
+
+New videos use `engine.visual_engine` from `config/project.yaml` (`premium` = Remotion cinematic engine,
+`classic` = Pillow engine). For premium storyboards follow `.claude/skills/premium-video-editor/SKILL.md`:
+pick a meaningful premium visual per scene (neural_net, chart, chat_ui, code+suggestion, globe, molecule,
+flow, headline…), vary `transition`/`camera`/`background`, and keep `caption_roman` word-aligned with
+`narration_te` (same word count) for exact word-by-word captions. Override per run with `--engine classic|premium`.
+If Remotion fails 3×, the job falls back to classic automatically (logged) — say so in the report.
+
 ## Voice
 
 Default `te-IN-MohanNeural` (male); `--voice shruti` → `te-IN-ShrutiNeural`. If TTS fails, run

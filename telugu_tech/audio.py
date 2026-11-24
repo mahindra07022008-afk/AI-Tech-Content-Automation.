@@ -42,37 +42,44 @@ def write_wav(path: str | Path, data: np.ndarray, sr: int = SR) -> None:
 
 # ------------------------------------------------------------------ narration timeline
 def build_narration(scene_audio: list[dict], out_wav: Path, gap: float, lead_in: float = 0.25,
-                    tail: float = 0.9) -> list[dict]:
-    """Concatenate scene clips with gaps; returns timings [{start,end,speech_end}] per scene.
+                    tail: float = 0.9, beat: float | None = None, max_wait: float = 0.7) -> list[dict]:
+    """Concatenate scene clips with gaps; returns timings [{start,end,speech_start,speech_end,trim}] per scene.
 
     Scene i visually spans [start_i, start_{i+1}) so visuals cover the gap after its line.
+    With ``beat`` (seconds), every scene start is pushed to the next beat of the music grid
+    (waiting at most ``max_wait`` extra), so cuts/transitions land on the beat.
     """
     pieces, timings = [np.zeros(int(lead_in * SR), np.float32)], []
     t = lead_in
     for i, sa in enumerate(scene_audio):
-        clip = decode(sa["path"])
-        clip = _trim_silence(clip)
+        raw = decode(sa["path"])
+        clip, trim = _trim_silence(raw, return_offset=True)
         dur = len(clip) / SR
         start = t if i else 0.0  # first scene starts at 0 (covers lead-in)
         pieces.append(clip)
         t += dur
         speech_start = t - dur
         g = gap if i < len(scene_audio) - 1 else tail
-        pieces.append(np.zeros(int(g * SR), np.float32))
-        t += g
+        if beat and i < len(scene_audio) - 1:
+            target = t + g
+            aligned = np.ceil(target / beat - 1e-6) * beat
+            if aligned - target <= max_wait:
+                g = aligned - t
+        pieces.append(np.zeros(int(round(g * SR)), np.float32))
+        t = (sum(len(x) for x in pieces)) / SR
         timings.append({"start": round(start, 3), "speech_start": round(speech_start, 3),
-                        "speech_end": round(t - g, 3), "end": round(t, 3)})
+                        "speech_end": round(speech_start + dur, 3), "end": round(t, 3), "trim": round(trim, 4)})
     write_wav(out_wav, np.concatenate(pieces))
     return timings
 
 
-def _trim_silence(x: np.ndarray, thresh: float = 0.008, pad: float = 0.04) -> np.ndarray:
+def _trim_silence(x: np.ndarray, thresh: float = 0.008, pad: float = 0.04, return_offset: bool = False):
     idx = np.where(np.abs(x) > thresh)[0]
     if not len(idx):
-        return x
+        return (x, 0.0) if return_offset else x
     a = max(0, idx[0] - int(pad * SR))
     b = min(len(x), idx[-1] + int(pad * SR))
-    return x[a:b]
+    return (x[a:b], a / SR) if return_offset else x[a:b]
 
 
 # ------------------------------------------------------------------ music synthesis
@@ -212,15 +219,121 @@ def sfx_ding() -> np.ndarray:
     return (0.25 * (np.sin(2 * np.pi * 1318.5 * t) + 0.5 * np.sin(2 * np.pi * 1975.5 * t)) * np.exp(-t * 5)).astype(np.float32)
 
 
+def sfx_impact() -> np.ndarray:
+    """Cinematic low boom: pitched-down sine sweep + noise thump."""
+    n = int(1.4 * SR)
+    t = np.arange(n) / SR
+    f = 38 + 70 * np.exp(-t * 9)
+    body = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 2.6)
+    rng = np.random.default_rng(5)
+    thump = _lowpass(rng.standard_normal(n).astype(np.float32), 300) * np.exp(-t * 18)
+    return (0.55 * body + 0.6 * thump).astype(np.float32)
+
+
+def sfx_riser(dur: float = 1.6) -> np.ndarray:
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    rng = np.random.default_rng(9)
+    noise = rng.standard_normal(n).astype(np.float32)
+    swept = np.zeros(n, np.float32)
+    y = 0.0
+    for i in range(n):  # rising one-pole lowpass
+        a = 0.01 + 0.35 * (i / n) ** 2
+        y += a * (noise[i] - y)
+        swept[i] = y
+    tone = np.sin(2 * np.pi * np.cumsum(200 + 900 * (t / dur) ** 2) / SR) * 0.15
+    env = (t / dur) ** 2
+    return ((swept * 0.6 + tone) * env * 0.6).astype(np.float32)
+
+
+def sfx_glitch(seed: int = 3) -> np.ndarray:
+    rng = np.random.default_rng(seed)
+    n = int(0.32 * SR)
+    out = np.zeros(n, np.float32)
+    pos = 0
+    while pos < n:
+        seg = int(rng.integers(400, 2400))
+        f = rng.choice([220, 440, 880, 1760, 3520])
+        t = np.arange(min(seg, n - pos)) / SR
+        sq = np.sign(np.sin(2 * np.pi * f * t)) * 0.12 if rng.random() < 0.6 else rng.standard_normal(len(t)) * 0.1
+        out[pos:pos + len(t)] = sq
+        pos += seg + int(rng.integers(0, 600))
+    return out
+
+
+def sfx_typing(dur: float = 1.5, seed: int = 4) -> np.ndarray:
+    rng = np.random.default_rng(seed)
+    n = int(dur * SR)
+    out = np.zeros(n, np.float32)
+    t = 0.0
+    while t < dur - 0.05:
+        k = int(t * SR)
+        m = int(0.018 * SR)
+        click = rng.standard_normal(m).astype(np.float32) * np.exp(-np.arange(m) / SR * 400) * 0.25
+        click = click - np.convolve(click, np.ones(6) / 6, "same")
+        out[k:k + m] += click[: n - k]
+        t += 0.06 + rng.random() * 0.09
+    return out
+
+
+def sfx_shimmer() -> np.ndarray:
+    n = int(1.1 * SR)
+    t = np.arange(n) / SR
+    out = sum(np.sin(2 * np.pi * f * t + p) * np.exp(-t * d) for f, p, d in
+              ((2637, 0, 4), (3136, 1, 5), (3951, 2, 6), (5274, 3, 7))) * 0.06
+    return (out * np.minimum(1, t * 30)).astype(np.float32)
+
+
+SFX_LIBRARY = {
+    # name: (generator, description) — all synthesised here, owned by the channel
+    "whoosh": "filtered-noise swoosh for transitions",
+    "pop": "short pitched pop for element reveals",
+    "ding": "bell for stats/numbers",
+    "impact": "cinematic low boom for hooks/turning points",
+    "riser": "noise+tone riser building into a turning point",
+    "glitch": "digital stutter for glitch transitions",
+    "typing": "keyboard clicks for code/chat UIs",
+    "shimmer": "high sparkle for glow reveals",
+}
+
+
 def build_sfx_track(events: list[tuple[float, str]], seconds: float, out_wav: Path) -> None:
-    track = np.zeros(int((seconds + 1) * SR), np.float32)
-    cache = {"whoosh": sfx_whoosh(), "pop": sfx_pop(), "ding": sfx_ding()}
+    track = np.zeros(int((seconds + 2) * SR), np.float32)
+    cache = {"whoosh": sfx_whoosh(), "pop": sfx_pop(), "ding": sfx_ding(), "impact": sfx_impact(),
+             "riser": sfx_riser(), "glitch": sfx_glitch(), "typing": sfx_typing(), "shimmer": sfx_shimmer()}
     for at, kind in events:
         clip = cache[kind]
-        s = max(0, int(at * SR) - (len(clip) // 2 if kind == "whoosh" else 0))
+        lead = len(clip) // 2 if kind == "whoosh" else len(clip) if kind == "riser" else 0  # riser ends ON the hit
+        s = max(0, int(at * SR) - lead)
         e = min(len(track), s + len(clip))
         track[s:e] += clip[: e - s]
-    write_wav(out_wav, track)
+    write_wav(out_wav, track[: int(seconds * SR) + SR // 2])
+
+
+def shape_music(music_wav: Path, *, intro_sweep: float = 2.5, dropouts: list[float] | None = None,
+                beat: float = 0.6) -> None:
+    """Cinematic arrangement on top of the synthesised bed: low-pass sweep opening the intro and
+    one-beat drop-outs before big moments (the impact SFX then lands in the space)."""
+    import wave as _w
+    with _w.open(str(music_wav)) as w:
+        ch, n = w.getnchannels(), w.getnframes()
+        data = np.frombuffer(w.readframes(n), dtype=np.int16).astype(np.float32).reshape(-1, ch) / 32768.0
+    out = data.copy()
+    k = int(intro_sweep * SR)
+    if k > 0:
+        for c in range(ch):
+            lp = _lowpass(data[:k, c], 500)
+            mix = np.linspace(1, 0, k) ** 1.5
+            out[:k, c] = lp * mix + data[:k, c] * (1 - mix)
+    for d in dropouts or []:
+        a, b = int(max(0, d - beat) * SR), int(d * SR)
+        if b > a:
+            env = np.ones(b - a, np.float32)
+            r = min(len(env), int(0.08 * SR))
+            env[:] = 0.12
+            env[:r] = np.linspace(1, 0.12, r)
+            out[a:b] *= env[:, None]
+    write_wav(music_wav, out)
 
 
 # ------------------------------------------------------------------ mixing

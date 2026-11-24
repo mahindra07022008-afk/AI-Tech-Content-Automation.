@@ -16,10 +16,14 @@ SECTION_LABELS = {
     "example": "Real-world example", "conclusion": "Conclusion", "cta": "Call to action",
 }
 VISUAL_TYPES = {"title", "question", "timeline", "stat", "flow", "branch_graph", "icon_grid", "code",
-                "bullets", "outro", "compare"}
+                "bullets", "outro", "compare",
+                # premium engine (Remotion) types; the classic engine renders them as titles
+                "headline", "neural_net", "chart", "chat_ui", "globe", "molecule"}
 ICONS = {"code", "cloud", "users", "star", "branch", "ai", "chip", "globe", "lock", "rocket", "book", "bug",
-         "laptop", "phone", "merge", "server", "money", "india", "check", "heart"}
-TRANSITIONS = {"fade", "slide", "zoom", "wipe"}
+         "laptop", "phone", "merge", "server", "money", "india", "check", "heart", "brain", "chart", "dna", "spark"}
+TRANSITIONS = {"fade", "slide", "zoom", "wipe", "whip", "mask", "iris", "glitch", "push"}
+CAMERAS = {"", "push_in", "pull_out", "pan_left", "pan_right", "orbit", "tilt", "drift"}
+BACKGROUNDS = {"", "aurora", "grid", "circuit", "dots", "space", "particles"}
 CLICKBAIT = ["shocking", "you won't believe", "100% guaranteed", "secret they", "gone wrong", "must watch",
              "nobody tells", "free money", "షాకింగ్"]
 TELUGU_RE = re.compile(r"[ఀ-౿]")
@@ -96,6 +100,10 @@ def validate(sb: dict, cfg=None, *, strict_duration: bool = False) -> list[str]:
                 p.append(f"scene {i}: unknown icon '{item['icon']}'")
         if sc.get("transition", "fade") not in TRANSITIONS:
             p.append(f"scene {i}: transition must be one of {sorted(TRANSITIONS)}")
+        if sc.get("camera", "") not in CAMERAS:
+            p.append(f"scene {i}: camera must be one of {sorted(CAMERAS - {''})}")
+        if sc.get("background", "") not in BACKGROUNDS:
+            p.append(f"scene {i}: background must be one of {sorted(BACKGROUNDS - {''})}")
 
     # --- duration estimate (final check happens on real audio)
     if cfg is not None and kind in ("short", "long"):
@@ -151,10 +159,15 @@ hook, intro, background, turning_point, explanation, example, conclusion, cta.
 VISUALS — each scene picks one visual "type" from:
 title{headline,subline,icon}, question{text}, timeline{events:[{year,label}]},
 stat{value,label}, flow{nodes:[labels]}, branch_graph{label}, icon_grid{items:[{icon,label}]},
-code{lines:[...]} , bullets{items:[...]}, compare{left:{title,points},right:{title,points}}, outro{cta}.
+code{lines:[...],suggestion:[...]} , bullets{items:[...]}, compare{left:{title,points},right:{title,points}}, outro{cta},
+headline{text,subline,icon}, neural_net{inputLabel,outputLabel}, chart{chart:"bar"|"line",title,unit,data:[{label,value,highlight}]},
+chat_ui{title,messages:[{from:"user"|"ai",text}]}, globe{label}, molecule{label}.
+Optional per scene: camera (push_in|pull_out|pan_left|pan_right|orbit|tilt|drift), background
+(aurora|grid|circuit|dots|space|particles), keywords:[tech terms to highlight].
+Keep caption_roman word-aligned with narration_te (same number of words) for exact word-by-word sync.
 Icons: code, cloud, users, star, branch, ai, chip, globe, lock, rocket, book, bug, laptop, phone,
 merge, server, money, india, check, heart. On-screen labels: short English / Roman Telugu (≤ 28 chars).
-transition per scene: fade | slide | zoom | wipe. Never request logos, movie clips or real people's photos.
+transition per scene: fade | slide | zoom | wipe | whip | mask | iris | glitch | push. Never request logos, movie clips or real people's photos.
 
 OUTPUT: one JSON object only, no markdown fences, matching:
 {"schema_version":1,"kind":"short|long","topic":"...","title_te":"...",

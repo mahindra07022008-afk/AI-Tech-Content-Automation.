@@ -43,6 +43,26 @@ Outputs per job: `data/jobs/<job-id>/final/` → `video.mp4`, `thumbnail.jpg`, `
 `subtitles.te.srt`, `subtitles.te-Latn.srt`, `youtube_metadata.{json,md}`, `storyboard.md`,
 `quality_report.json`, `licenses.json`, `preview.html`.
 
+## Premium cinematic editor (`/premium-video-editor`)
+
+Remotion (pinned 4.0.540) + FFmpeg on top of the same pipeline:
+- **Camera:** speed-ramped push/pull/pan/orbit/tilt/drift, beat punches, beat-aligned punch-in reframes, parallax.
+- **Transitions:** whip-pan with directional motion blur, diagonal mask, iris, zoom-through, glitch RGB split, push and fade.
+- **Graphics:** kinetic glow typography, neural network, animated bar/line charts and counters, chat UI, code editor with AI autocomplete, flow diagrams, timeline, floating 3D cards, and code-driven 3D globe and protein.
+- **Backgrounds:** six animated, scene-specific backgrounds.
+- **Captions:** word-by-word Roman-Telugu captions timed from Edge TTS word boundaries, with highlighted tech keywords.
+- **Sound:** synthesised SFX (whoosh, impact, riser, glitch, typing, pop, ding, shimmer). The music is arranged with an intro filter sweep and a drop-out before the turning point, and cuts land on the beat.
+- **Finish:** an FFmpeg grade adds bloom, teal/warm balance, contrast, sharpening, vignette and grain. No watermark or badge is added.
+
+```bash
+cd remotion && npm ci && cd ..                         # or: telugu-tech premium fix-errors
+telugu-tech premium analyze-reference --video ref.mp4 --activate   # optional: learn pacing/grade from YOUR reference MP4
+telugu-tech premium generate --storyboard examples/demo_ai_future_premium.storyboard.json --job-id my-short
+telugu-tech premium preview --job my-short
+telugu-tech premium report
+```
+Remotion licence: free for individuals and companies with up to 3 employees (larger companies need a company licence).
+
 ## Safety defaults (change only with intent)
 
 `config/project.yaml`: `publishing.youtube_enabled: false`, `allow_public: false`, `allow_scheduling: false`,
@@ -77,5 +97,5 @@ GitHub Actions is intentionally **not** used: runners have no logged-in Claude s
 YouTube OAuth tokens in CI would widen the attack surface.
 
 ## Licences
-Code: this repo. Engine: MoneyPrinterTurbo (MIT). Fonts: Noto (SIL OFL 1.1). Music/SFX/visuals: generated
+Code: this repo. Engine: MoneyPrinterTurbo (MIT). Motion graphics: Remotion (Remotion License, free for individuals/≤3-person companies). Fonts: Noto (SIL OFL 1.1). Music/SFX/visuals: generated
 by this project. Voice: Microsoft Edge neural TTS (synthetic voice; disclosed as AI-generated).

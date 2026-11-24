@@ -363,6 +363,11 @@ def render_scene_layer(d: ImageDraw.ImageDraw, th: Theme, scene: dict, lt: float
     """Draw a scene's visual at local time lt (seconds since scene start)."""
     v = scene.get("visual") or {}
     typ = v.get("type", "title")
+    if typ in ("headline", "neural_net", "chart", "chat_ui", "globe", "molecule"):  # premium-only types
+        v = {"type": "title", "headline": v.get("text") or v.get("title") or v.get("label") or v.get("headline", ""),
+             "subline": v.get("subline", ""), "icon": {"neural_net": "ai", "chart": "chart", "chat_ui": "ai",
+                                                       "globe": "globe", "molecule": "dna"}.get(typ, v.get("icon", "spark"))}
+        typ = "title"
     x0, y0, x1, y1 = th.visual_box
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
     bw, bh = x1 - x0, y1 - y0
