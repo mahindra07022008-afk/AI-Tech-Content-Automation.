@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "kind": "short",
+  "topic": "GitHub అంటే ఏంటి? ప్రపంచంలోని developers అందరూ GitHub ఎందుకు ఉపయోగిస్తున్నారు?",
+  "title_te": "GitHub అంటే ఏంటి?",
+  "language": "te-IN",
+  "sources": [
+    {
+      "id": "s1",
+      "url": "https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/",
+      "title": "Octoverse: A new developer joins GitHub every second as AI leads TypeScript to #1",
+      "publisher": "GitHub Blog (official)",
+      "published": "2025-10-28",
+      "tier": "primary"
+    },
+    {
+      "id": "s2",
+      "url": "https://github.blog/open-source/git/git-turns-20-a-qa-with-linus-torvalds/",
+      "title": "Git turns 20: A Q&A with Linus Torvalds",
+      "publisher": "GitHub Blog (official)",
+      "published": "2025-04-07",
+      "tier": "primary"
+    },
+    {
+      "id": "s3",
+      "url": "https://git-scm.com/book/en/v2/Getting-Started-A-Short-History-of-Git",
+      "title": "Pro Git — A Short History of Git",
+      "publisher": "git-scm.com (official Git documentation)",
+      "published": "2014 (Pro Git, 2nd ed.)",
+      "tier": "primary"
+    },
+    {
+      "id": "s4",
+      "url": "https://www.britannica.com/technology/GitHub",
+      "title": "GitHub",
+      "publisher": "Encyclopaedia Britannica",
+      "published": "accessed 2026-11-24",
+      "tier": "news"
+    },
+    {
+      "id": "s5",
+      "url": "https://en.wikipedia.org/wiki/Timeline_of_GitHub",
+      "title": "Timeline of GitHub",
+      "publisher": "Wikipedia",
+      "published": "accessed 2026-11-24",
+      "tier": "community"
+    },
+    {
+      "id": "s6",
+      "url": "https://www.sec.gov/Archives/edgar/data/789019/000156459019001392/msft-10q_20181231.htm",
+      "title": "Microsoft Corp. Form 10-Q (quarter ended 2018-12-31) — GitHub acquisition note",
+      "publisher": "U.S. SEC EDGAR (primary filing)",
+      "published": "2019 (period ended 2018-12-31)",
+      "tier": "primary"
+    },
+    {
+      "id": "s7",
+      "url": "https://siliconangle.com/2018/10/26/microsoft-completes-7-5b-acquisition-github/",
+      "title": "Microsoft completes $7.5B acquisition of GitHub",
+      "publisher": "SiliconANGLE",
+      "published": "2018-10-26",
+      "tier": "news"
+    }
+  ],
+  "facts": [
+    {
+      "claim": "Between Sep 2024 and Aug 2025, on average one new developer joined GitHub every second.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "claim": "More than 180 million developers build on GitHub (Octoverse 2025).",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "claim": "India added over 5.2 million developers to GitHub in 2025 (= 52 lakh).",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "claim": "Git was created by Linus Torvalds in April 2005; the first version took only a few days.",
+      "source_ids": [
+        "s2",
+        "s3"
+      ]
+    },
+    {
+      "claim": "GitHub launched publicly in April 2008.",
+      "source_ids": [
+        "s4",
+        "s5"
+      ]
+    },
+    {
+      "claim": "Microsoft completed its $7.5 billion acquisition of GitHub in October 2018.",
+      "source_ids": [
+        "s6",
+        "s7"
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "id": 1,
+      "section": "hook",
+      "narration_te": "GitHub అంటే ఏంటి? గత ఏడాది సగటున ప్రతి సెకనుకు ఒక కొత్త developer ఇందులో చేరారు!",
+      "caption_roman": "GitHub ante enti? Gatha edaadi sagatuna prathi second ki oka kotha developer indulo cheraaru!",
+      "visual": {
+        "type": "question",
+        "text": "GitHub ante enti?"
+      },
+      "transition": "zoom"
+    },
+    {
+      "id": 2,
+      "section": "intro",
+      "narration_te": "సింపుల్‌గా, GitHub అంటే code కి online ఇల్లు.",
+      "caption_roman": "Simple ga, GitHub ante code ki online illu.",
+      "visual": {
+        "type": "title",
+        "headline": "Code ki Online Illu",
+        "subline": "Every version, safe",
+        "icon": "cloud"
+      },
+      "transition": "slide"
+    },
+    {
+      "id": 3,
+      "section": "background",
+      "narration_te": "2005 లో Linus Torvalds కేవలం కొన్ని రోజుల్లో Git అనే tool రాశారు.",
+      "caption_roman": "2005 lo Linus Torvalds kevalam konni rojullo Git ane tool raasaaru.",
+      "visual": {
+        "type": "timeline",
+        "events": [
+          {
+            "year": "2005",
+            "label": "Git is born"
+          },
+          {
+            "year": "2008",
+            "label": "GitHub launches"
+          },
+          {
+            "year": "2018",
+            "label": "Microsoft acquires GitHub"
+          },
+          {
+            "year": "2025",
+            "label": "180M+ developers"
+          }
+        ]
+      },
+      "transition": "wipe"
+    },
+    {
+      "id": 4,
+      "section": "turning_point",
+      "narration_te": "కానీ code ని అందరితో పంచుకునే చోటు లేదు. అందుకే 2008 లో GitHub వచ్చింది.",
+      "caption_roman": "Kaani code ni andaritho panchukune chotu ledu. Anduke 2008 lo GitHub vachindi.",
+      "visual": {
+        "type": "title",
+        "headline": "2008: GitHub Launch",
+        "subline": "Git + Web = Teamwork",
+        "icon": "rocket"
+      },
+      "transition": "zoom"
+    },
+    {
+      "id": 5,
+      "section": "explanation",
+      "narration_te": "ప్రతి మార్పు ఒక commit. కొత్త idea కి ఒక branch. బాగుంటే, pull request తో merge.",
+      "caption_roman": "Prathi maarpu oka commit. Kotha idea ki oka branch. Baagunte, pull request tho merge.",
+      "visual": {
+        "type": "branch_graph",
+        "labels": {
+          "main": "main",
+          "feature": "new-idea",
+          "merge": "merge (PR)"
+        },
+        "label": "commit → branch → pull request → merge"
+      },
+      "transition": "fade"
+    },
+    {
+      "id": 6,
+      "section": "example",
+      "narration_te": "ఉదాహరణకి, నలుగురు friends ఒకే project ని ఒకేసారి build చేయొచ్చు.",
+      "caption_roman": "Udaaharanaki, naluguru friends oke project ni okesari build cheyochu.",
+      "visual": {
+        "type": "code",
+        "lines": [
+          "$ git clone college-project",
+          "$ git checkout -b login-page",
+          "$ git commit -m \"add login\"",
+          "$ git push origin login-page",
+          "# next: open a Pull Request"
+        ]
+      },
+      "transition": "slide"
+    },
+    {
+      "id": 7,
+      "section": "conclusion",
+      "narration_te": "Octoverse 2025 ప్రకారం, 180 million కి పైగా developers దీన్ని వాడుతున్నారు. 2025 లో India నుంచే 52 లక్షల మంది చేరారు.",
+      "caption_roman": "Octoverse 2025 prakaaram, 180 million ki paigaa developers deenni vaadutunnaru. 2025 lo India nunche 52 lakshala mandi cheraaru.",
+      "visual": {
+        "type": "stat",
+        "value": "180M+",
+        "label": "developers on GitHub (Octoverse 2025)"
+      },
+      "transition": "zoom"
+    },
+    {
+      "id": 8,
+      "section": "conclusion",
+      "narration_te": "అంటే GitHub కేవలం storage కాదు, ప్రపంచం కలిసి పనిచేసే వేదిక.",
+      "caption_roman": "Ante GitHub kevalam storage kaadu, prapancham kalisi panichese vedika.",
+      "visual": {
+        "type": "icon_grid",
+        "items": [
+          {
+            "icon": "branch",
+            "label": "Version control"
+          },
+          {
+            "icon": "users",
+            "label": "Teamwork"
+          },
+          {
+            "icon": "globe",
+            "label": "Open source"
+          },
+          {
+            "icon": "india",
+            "label": "52 lakh new (India)"
+          }
+        ]
+      },
+      "transition": "fade"
+    },
+    {
+      "id": 9,
+      "section": "cta",
+      "narration_te": "మీ first project ఈరోజే పెట్టండి. ఏ tech కథ కావాలో comment చేయండి!",
+      "caption_roman": "Mee first project eeroje pettandi. E tech katha kaavaalo comment cheyandi!",
+      "visual": {
+        "type": "outro",
+        "cta": "Mee first repo eeroje!",
+        "icon": "rocket"
+      },
+      "transition": "wipe"
+    }
+  ],
+  "seo": {
+    "titles": [
+      "GitHub అంటే ఏంటి? Developers అందరూ ఎందుకు వాడుతున్నారు? | Telugu Tech",
+      "Git నుంచి GitHub వరకు: 60 సెకన్లలో కథ | GitHub Explained in Telugu",
+      "GitHub in Telugu: Commit, Branch, Pull Request సింపుల్‌గా"
+    ],
+    "description_te": "GitHub అంటే ఏంటి? 2005 లో Linus Torvalds Git ని ఎందుకు రాశారు, 2008 లో GitHub ఎలా మొదలైంది, commit–branch–pull request ఎలా పనిచేస్తాయి — అన్నీ 60 సెకన్లలో సింపుల్ తెలుగులో. GitHub Octoverse 2025 ప్రకారం 180 million కి పైగా developers GitHub వాడుతున్నారు, 2025 లో India నుంచే 52 లక్షల కొత్త developers చేరారు.",
+    "description_en": "What is GitHub and why do developers everywhere use it? The story from Git (2005) to GitHub (2008), how commits, branches and pull requests work, and what GitHub's Octoverse 2025 report says about 180M+ developers — explained in simple Telugu.",
+    "hashtags": [
+      "#GitHub",
+      "#Git",
+      "#Coding",
+      "#Developers",
+      "#OpenSource",
+      "#TeluguTechKathalu"
+    ],
+    "keywords": [
+      "GitHub Telugu",
+      "GitHub ante enti",
+      "what is GitHub in Telugu",
+      "Git and GitHub Telugu",
+      "pull request Telugu",
+      "coding Telugu",
+      "Telugu tech",
+      "developer Telugu",
+      "Octoverse 2025"
+    ],
+    "pinned_comment": "మీ first GitHub repo ఏ project? 👇 Comment చేయండి! Next ఏ tech కథ కావాలో కూడా చెప్పండి. (Sources description లో ఉన్నాయి.)",
+    "thumbnail": {
+      "headline": "GitHub ante enti?",
+      "subline": "Git to GitHub story",
+      "icon": "branch",
+      "concept": "Dark violet tech gradient, large glowing original branch/merge icon on the right, bold white 'GITHUB ANTE ENTI?' with yellow 'Git to GitHub story' pill and Telugu line 'GitHub అంటే ఏంటి?'. No logos, no faces."
+    }
+  }
+}

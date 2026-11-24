@@ -1,0 +1,140 @@
+# Telugu Tech Storytelling AI Agent — project configuration.
+# Safe defaults: no paid services, no public publishing, scheduler disabled.
+
+project:
+  name: Telugu Tech Storytelling AI Agent
+  channel_name: Telugu Tech Kathalu
+  channel_handle: "@TeluguTechKathalu"   # placeholder — set your real handle
+  timezone: Asia/Kolkata
+  data_dir: data
+
+engine:
+  # MoneyPrinterTurbo is the primary video assembly/render engine.
+  mpt_repo: https://github.com/harry0703/MoneyPrinterTurbo.git
+  mpt_commit: dabfd3f8548d30ed0eea8759decbdead9626e0e6   # v1.3.11 line, verified 2026-11-24
+  mpt_home: vendor/MoneyPrinterTurbo
+  python: "3.11"
+  render_timeout_seconds: 1800
+  # If MoneyPrinterTurbo fails 3 times, fall back to a direct FFmpeg mux
+  # (logged as a repaired error, never silent).
+  ffmpeg_fallback: true
+
+llm:
+  # Official MoneyPrinterTurbo provider that runs the logged-in `claude` CLI headless.
+  provider: claude_code
+  model: ""            # empty = CLI default model
+  timeout_seconds: 420
+  # When Claude Code is driving the session interactively, it writes the
+  # storyboard itself (no extra headless calls). Headless mode is for scheduled runs.
+
+voice:
+  provider: edge
+  primary: te-IN-MohanNeural
+  alternate: te-IN-ShrutiNeural
+  rate: "+0%"
+  scene_gap_seconds: 0.30
+  # Loudness targets (YouTube normalises to about -14 LUFS).
+  target_lufs: -14.0
+  true_peak_db: -1.5
+  # Section-level prosody for natural storytelling variation (Edge TTS rate/pitch).
+  prosody:
+    hook: {rate: "+6%", pitch: "+2Hz"}
+    intro: {rate: "+2%", pitch: "+0Hz"}
+    background: {rate: "-2%", pitch: "-1Hz"}
+    turning_point: {rate: "+4%", pitch: "+3Hz"}
+    explanation: {rate: "-4%", pitch: "+0Hz"}
+    example: {rate: "+0%", pitch: "+1Hz"}
+    conclusion: {rate: "-3%", pitch: "-1Hz"}
+    cta: {rate: "+3%", pitch: "+2Hz"}
+
+video:
+  short: {width: 1080, height: 1920, fps: 30, min_seconds: 45, max_seconds: 60}
+  long: {width: 1920, height: 1080, fps: 30, min_seconds: 300, max_seconds: 480}
+  transition_seconds: 0.45
+  render_workers: 4
+  crf: 20
+  preset: medium
+
+captions:
+  # On-screen: Roman Telugu with English tech terms. Sidecar: Telugu Unicode + Roman SRT.
+  on_screen: roman
+  latin_font: /usr/share/fonts/truetype/noto/NotoSans-Bold.ttf
+  telugu_font: /usr/share/fonts/truetype/noto/NotoSansTelugu-Bold.ttf
+  telugu_font_regular: /usr/share/fonts/truetype/noto/NotoSansTelugu-Regular.ttf
+  words_per_chunk: 4
+  # Safe area as a fraction of frame size (YouTube Shorts UI overlays bottom/right).
+  safe_margin_x: 0.08
+  safe_top: 0.10
+  safe_bottom_short: 0.22
+  safe_bottom_long: 0.10
+
+branding:
+  primary: "#7C3AED"      # violet
+  accent: "#22D3EE"       # cyan
+  highlight: "#FACC15"    # yellow (active caption word)
+  bg_top: "#0B1020"
+  bg_bottom: "#1E1B4B"
+  text: "#F8FAFC"
+
+music:
+  # Original procedurally generated music (owned by the channel, no third-party licence).
+  bgm_db_under_voice: -20
+  ducking: true
+  sfx: true
+
+research:
+  lookback_hours: 72
+  max_candidates: 40
+  min_sources_for_news: 2       # news claims need 2 independent sources or 1 primary
+  user_agent: "TeluguTechResearch/0.1 (+local research script)"
+  feeds:
+    - {name: OpenAI News, url: "https://openai.com/news/rss.xml", tier: primary, category: ai_news}
+    - {name: GitHub Blog, url: "https://github.blog/feed/", tier: primary, category: how_it_works}
+    - {name: Google AI Blog, url: "https://blog.google/technology/ai/rss/", tier: primary, category: ai_news}
+    - {name: Hugging Face Blog, url: "https://huggingface.co/blog/feed.xml", tier: primary, category: ai_tools}
+    - {name: TechCrunch AI, url: "https://techcrunch.com/category/artificial-intelligence/feed/", tier: news, category: ai_news}
+    - {name: The Verge AI, url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml", tier: news, category: ai_news}
+    - {name: TechCrunch Startups, url: "https://techcrunch.com/category/startups/feed/", tier: news, category: startup_story}
+  github_trending:
+    enabled: true
+    topics: [ai, llm, machine-learning, automation, developer-tools]
+  hacker_news:
+    enabled: true
+    min_points: 150
+  arxiv:
+    enabled: true
+    categories: [cs.AI, cs.CL, cs.LG]
+  hf_daily_papers:
+    enabled: true
+  duplicate_similarity: 0.6
+
+publishing:
+  # Phase 9 safety gates. Everything starts OFF.
+  youtube_enabled: false
+  default_privacy: private
+  allow_public: false            # requires your explicit approval + a successful private test upload
+  allow_scheduling: false
+  made_for_kids: false
+  contains_synthetic_media: true # AI voice + generated visuals → disclose
+  category_id: "28"              # Science & Technology
+  default_language: te
+  daily_quota_units: 10000
+  upload_cost_units: 1600
+
+scheduler:
+  enabled: false                 # stays false until you approve activation
+  timezone: Asia/Kolkata
+  jobs:
+    - {name: morning_news_short, cron: "0 7 * * *", command: generate-short, category: ai_news}
+    - {name: night_story_short, cron: "0 22 * * *", command: generate-short, category: story}
+    - {name: weekly_long, cron: "0 10 * * 0", command: generate-long, category: story, enabled: false}
+  auto_upload_private: false
+
+reporting:
+  gmail_enabled: false
+  local_dir: data/reports
+
+retry:
+  max_attempts: 3
+  base_delay_seconds: 2.0
+  max_delay_seconds: 30.0
