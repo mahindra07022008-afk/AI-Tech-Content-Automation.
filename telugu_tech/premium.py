@@ -43,8 +43,14 @@ _NOT_KEYWORDS = {"ante", "oka", "mee", "lo", "ki", "ni", "tho", "ga", "ee", "aa"
 
 
 # ------------------------------------------------------------------ style
-def load_style(cfg, profile_path: str | Path | None = None) -> dict:
-    style = json.loads(json.dumps(HOUSE_STYLE))
+def load_style(cfg, profile_path: str | Path | None = None, edit_style: str | None = None) -> dict:
+    """Edit style (one of telugu_tech.styles.STYLES, or the house preset) + optional reference profile on top."""
+    if edit_style:
+        from .styles import get_style
+        style = get_style(edit_style)
+    else:
+        style = json.loads(json.dumps(HOUSE_STYLE))
+        style.setdefault("theme", {})
     path = profile_path or cfg.get("premium", "style_profile", default="")
     if path:
         p = cfg.resolve(path)
@@ -156,6 +162,50 @@ def _interp_time(frac: float, cum: list[float], spoken: list[tuple[float, float]
     return spoken[-1][1]
 
 
+def fit_caption_pages(words: list[dict], style: dict, cfg, kind: str) -> list[dict]:
+    """Insert page breaks so every caption page fits in ≤ 2 lines (real font metrics, template padding).
+
+    Mirrors Remotion's buildPages(): a page ends after a word with pageEnd, at maxWords, after , . ! ? or at a
+    scene change. Long Roman-Telugu words can still overflow 2 lines within maxWords, so we break earlier.
+    """
+    from PIL import ImageFont
+    v = cfg.get("video", kind)
+    W = v["width"]
+    cap = style["caption"]
+    sc = W / 1080
+    size = int(cap["fontSize"] * sc)
+    font_path = remotion_dir(cfg) / "public" / "fonts" / "NotoSansDisplay-Bold.ttf"
+    if not font_path.is_file():
+        return words
+    f = ImageFont.truetype(str(font_path), size)
+    pad = {"glass_pill": 64, "hud_bracket": 64, "pixel_block": 56}.get(cap.get("template", ""), 0) * sc
+    max_w = 0.8 * W - pad
+    gap = 22 * sc
+
+    def lines(page: list[dict]) -> int:
+        n, cur = 1, 0.0
+        for w in page:
+            ww = f.getlength(w["text"].upper() if cap.get("uppercase") else w["text"]) * 1.08
+            if cur and cur + gap + ww > max_w:
+                n, cur = n + 1, ww
+            else:
+                cur += (gap if cur else 0) + ww
+        return n
+
+    out = [dict(w) for w in words]
+    cur: list[dict] = []
+    for i, w in enumerate(out):
+        if cur and cur[0]["scene"] != w["scene"]:
+            cur = []
+        if cur and lines(cur + [w]) > 2:
+            cur[-1]["pageEnd"] = True
+            cur = []
+        cur.append(w)
+        if w.get("pageEnd") or len(cur) >= cap["maxWords"] or re.search(r"[.!?,]$", w["text"]) or i == len(out) - 1:
+            cur = []
+    return out
+
+
 def caption_pages(words: list[dict], max_words: int) -> list[dict]:
     """Python mirror of Remotion's buildPages (used by quality checks)."""
     pages, cur = [], []
@@ -182,19 +232,26 @@ def build_props(cfg, sb: dict, timings: list[dict], words: list[dict], total: fl
         scenes.append({
             "id": sc.get("id", i + 1), "section": sc["section"], "start": tm["start"], "end": tm["end"],
             "speechStart": tm["speech_start"], "speechEnd": tm["speech_end"], "visual": vis,
-            "transition": sc.get("transition", "fade"), "camera": sc.get("camera", ""), "background": sc.get("background", ""),
+            "transition": sc.get("transition", "fade"), "camera": sc.get("camera", ""),
+            "background": sc.get("background") or style.get("background", ""),  # style backdrop unless the scene picks one
             **({"tag": sc["tag"]} if sc.get("tag") else {}),
         })
     style_r = {k: style[k] for k in ("name", "source", "bpm", "transitionSeconds", "cameraIntensity", "zoomRange", "motionBlur",
                                       "parallax", "beatPunch", "subCutSeconds", "caption")}
+    style_r.update({k: style.get(k) for k in ("overlay", "font", "dof")})
+    theme = {"primary": b["primary"], "accent": b["accent"], "highlight": b["highlight"], "bgTop": b.get("premium_bg_top", "#070B18"),
+             "bgBottom": b["bg_bottom"], "text": b["text"], "danger": "#F43F5E"}
+    theme.update(style.get("theme") or {})  # per-style palette; brand text colour and caption rules stay constant
     return {
         "width": v["width"], "height": v["height"], "fps": fps, "durationInFrames": int(round(total * fps)),
-        "theme": {"primary": b["primary"], "accent": b["accent"], "highlight": b["highlight"], "bgTop": b.get("premium_bg_top", "#070B18"),
-                  "bgBottom": b["bg_bottom"], "text": b["text"], "danger": "#F43F5E"},
-        "style": style_r,
-        "fonts": {"display": "TTDisplay", "telugu": "TTTelugu", "mono": "TTMono", "body": "TTDisplay"},
+        "theme": theme, "style": style_r, "profile": "full",
+        "fonts": {"display": "TTDisplay", "telugu": "TTTelugu", "mono": "TTMono", "body": "TTDisplay", "serif": "TTSerif"},
         "scenes": scenes, "words": words, "beats": beat_grid(total, style["bpm"]),
+        "channel": cfg.get("project", "channel_name", default=""), "dateLabel": sb.get("date_label", ""),
     }
+
+
+WEBGL_VISUALS = {"phone3d", "pixel_scene"}
 
 
 # ------------------------------------------------------------------ remotion
@@ -219,11 +276,11 @@ def find_browser(cfg) -> str | None:
     return None  # Remotion will try to download its own headless shell
 
 
-def render_remotion(cfg, props: dict, out_mp4: Path, log=print) -> Path:
+def render_remotion(cfg, props: dict, out_mp4: Path, log=print, max_attempts: int | None = None) -> Path:
     rdir = remotion_dir(cfg)
     if not (rdir / "node_modules" / "@remotion" / "cli").is_dir():
         raise AgentError("Remotion not installed", Category.DEPENDENCY, fix_hint="telugu-tech setup (runs npm ci in remotion/)")
-    for f in ("NotoSansDisplay-Bold.ttf", "NotoSansTelugu-Bold.ttf", "NotoSansMono-Bold.ttf"):
+    for f in ("NotoSansDisplay-Bold.ttf", "NotoSansTelugu-Bold.ttf", "NotoSansMono-Bold.ttf", "NotoSerifDisplay-Bold.ttf"):
         if not (rdir / "public" / "fonts" / f).is_file():
             raise AgentError(f"Remotion font missing: {f}", Category.FONT, fix_hint="telugu-tech fix-errors")
     props_file = out_mp4.with_suffix(".props.json")
@@ -246,9 +303,9 @@ def render_remotion(cfg, props: dict, out_mp4: Path, log=print) -> Path:
             raise AgentError(f"Remotion render failed: {tail}", cat)
         return out_mp4
 
-    log(f"  Remotion: {props['durationInFrames']} frames {props['width']}x{props['height']} "
-        f"(browser: {Path(browser).name if browser else 'remotion-managed'})")
-    return retry_call(once, max_attempts=cfg.get("retry", "max_attempts", default=3),
+    log(f"  Remotion [{props.get('profile', 'full')}]: {props['durationInFrames']} frames {props['width']}x{props['height']}"
+        f"@{props['fps']} (browser: {Path(browser).name if browser else 'remotion-managed'})")
+    return retry_call(once, max_attempts=max_attempts or cfg.get("retry", "max_attempts", default=3),
                       on_retry=lambda a, e, d: log(f"  Remotion attempt {a} failed; retrying in {d:.0f}s: {str(e)[:160]}"))
 
 
@@ -316,13 +373,27 @@ def music_dropouts(sb: dict, timings: list[dict]) -> list[float]:
 
 # ------------------------------------------------------------------ render entry point
 def render_visuals(cfg, sb: dict, timings: list[dict], words: list[dict], total: float, kind: str, work: Path,
-                   style: dict, log=print) -> dict:
+                   style: dict, log=print, on_fallback=None) -> dict:
+    """Full profile (WebGL 3D / Pixi) first; if it fails, retry with the lite profile (CSS-3D / canvas-2D
+    stand-ins, no WebGL). If lite fails too the caller falls back to the classic engine."""
     props = build_props(cfg, sb, timings, words, total, style, kind)
     raw = work / "premium_raw.mp4"
-    render_remotion(cfg, props, raw, log=log)
+    uses_webgl = any((sc.get("visual") or {}).get("type") in WEBGL_VISUALS for sc in sb["scenes"])
+    profile = "full"
+    try:
+        render_remotion(cfg, props, raw, log=log, max_attempts=2 if uses_webgl else None)
+    except AgentError as exc:
+        if exc.is_blocker or not uses_webgl:
+            raise
+        if on_fallback:
+            on_fallback(exc, "full WebGL profile failed; re-rendered with the lite (no-WebGL) profile")
+        log("  ⚠ full 3D/WebGL profile failed → lite profile (logged)")
+        profile = "lite"
+        props["profile"] = "lite"
+        render_remotion(cfg, props, raw, log=log, max_attempts=2)
     out = work / "material.mp4"
     log("  FFmpeg: cinematic grade (bloom, colour balance, contrast, vignette, grain)")
     grade(raw, out, style.get("grade", {}), fps=props["fps"], width=props["width"], height=props["height"])
     (work / "premium_props.json").write_text(json.dumps(props, ensure_ascii=False, indent=1), encoding="utf-8")
     return {"engine": "premium (Remotion + FFmpeg)", "style": style["name"], "style_source": style["source"],
-            "frames": props["durationInFrames"]}
+            "profile": profile, "frames": props["durationInFrames"], "fps": props["fps"]}

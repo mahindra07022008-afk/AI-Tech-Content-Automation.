@@ -42,8 +42,19 @@ export const Captions: React.FC<{words: Word[]; style: CaptionStyle; theme: Them
   const pf = Math.round(page.start * fps);
   const enter = prog(frame, pf, 6, snap);
   const scale = width / 1080;
+  const tpl = style.template;
+  const wrapper: React.CSSProperties =
+    tpl === 'glass_pill'
+      ? {background: 'rgba(255,255,255,0.14)', border: '2px solid rgba(255,255,255,0.35)', borderRadius: 36 * scale, padding: `${14 * scale}px ${30 * scale}px`,
+        backdropFilter: 'blur(12px)', boxShadow: '0 20px 50px rgba(0,0,0,0.35)'}
+      : tpl === 'hud_bracket'
+        ? {borderLeft: `${6 * scale}px solid ${theme.accent}`, borderRight: `${6 * scale}px solid ${theme.accent}`, padding: `${8 * scale}px ${26 * scale}px`,
+          background: 'rgba(2,6,23,0.55)'}
+        : tpl === 'pixel_block'
+          ? {background: '#000000cc', border: `${6 * scale}px solid ${theme.text}`, padding: `${10 * scale}px ${22 * scale}px`, borderRadius: 0}
+          : {};
   return (
-    <div style={{position: 'absolute', left: width * 0.07, width: width * 0.8, top: height * style.position, transform: `translateY(-50%) scale(${0.9 + 0.1 * enter})`,
+    <div style={{position: 'absolute', left: width * 0.07, width: width * 0.8, top: height * style.position, ...wrapper, boxSizing: 'border-box', transform: `translateY(-50%) scale(${0.9 + 0.1 * enter})`,
       display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: `${12 * scale}px ${30 * scale}px`, fontFamily: font,
       fontSize: style.fontSize * scale, fontWeight: 900, lineHeight: 1.12, textAlign: 'center', opacity: clamp(enter * 1.5)}}>
       {page.words.map((w, i) => {
@@ -56,7 +67,8 @@ export const Captions: React.FC<{words: Word[]; style: CaptionStyle; theme: Them
         return (
           <span key={i} style={{display: 'inline-block', color, opacity: style.template === 'karaoke_line' ? (spoken ? 1 : 0.45) : spoken ? 1 : 0,
             transform: `scale(${spoken ? (active ? 1.06 : 1) * (0.7 + 0.3 * pop) : 0.7}) translateY(${(1 - pop) * 18 * scale}px)`,
-            textShadow: `${outline(4 * scale)}, ${w.keyword ? glow(theme.accent, 0.7) : active ? glow(theme.highlight, 0.45) : '0 8px 22px rgba(0,0,0,0.9)'}`}}>
+            textShadow: tpl === 'pixel_block' ? `${4 * scale}px ${4 * scale}px 0 #000` :
+              `${outline(4 * scale)}, ${w.keyword ? glow(theme.accent, 0.7) : active ? glow(theme.highlight, 0.45) : '0 8px 22px rgba(0,0,0,0.9)'}`}}>
             {text}
           </span>
         );

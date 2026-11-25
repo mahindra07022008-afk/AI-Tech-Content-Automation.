@@ -65,6 +65,8 @@ pick a meaningful premium visual per scene (neural_net, chart, chat_ui, code+sug
 flow, headline…), vary `transition`/`camera`/`background`, and keep `caption_roman` word-aligned with
 `narration_te` (same word count) for exact word-by-word captions. Override per run with `--engine classic|premium`.
 If Remotion fails 3×, the job falls back to classic automatically (logged) — say so in the report.
+Editing style is auto-selected per topic from 12 styles (`telugu_tech/styles.py`); set `"style"` in the
+storyboard only when the user asks for a specific look. Shorts may be 30–60 s; aim ≈ 450–600 narration chars.
 
 ## Voice
 

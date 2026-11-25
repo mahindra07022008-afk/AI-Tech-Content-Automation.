@@ -48,6 +48,49 @@ export const Background: React.FC<{variant: string; theme: Theme; seed: number; 
     </AbsoluteFill>
   );
 
+  if (variant === 'studio') {
+    // product studio: dark seamless backdrop, soft floor reflection, slow light shift
+    return (
+      <AbsoluteFill>
+        <AbsoluteFill style={{background: `radial-gradient(ellipse at 50% 38%, ${theme.bgBottom} 0%, ${theme.bgTop} 70%)`}} />
+        <AbsoluteFill style={{background: `radial-gradient(ellipse at ${50 + Math.sin(t * 0.3) * 12}% 30%, ${hexA(theme.accent, 0.14)} 0%, transparent 50%)`,
+          transform: `translate(${px * 0.3}px, ${py * 0.3}px)`}} />
+        <div style={{position: 'absolute', left: 0, right: 0, top: '62%', bottom: 0,
+          background: `linear-gradient(180deg, ${hexA('#ffffff', 0.04)} 0%, transparent 60%)`}} />
+      </AbsoluteFill>
+    );
+  }
+  if (variant === 'pixel') {
+    return (
+      <AbsoluteFill>
+        <AbsoluteFill style={{background: `linear-gradient(180deg, ${theme.bgTop} 0%, ${theme.bgBottom} 100%)`}} />
+        <AbsoluteFill style={{opacity: 0.25, backgroundImage: `linear-gradient(${hexA(theme.accent, 0.25)} 4px, transparent 4px), linear-gradient(90deg, ${hexA(theme.accent, 0.25)} 4px, transparent 4px)`,
+          backgroundSize: '64px 64px', backgroundPosition: `0px ${Math.floor(t * 8) * 8 % 64}px`}} />
+      </AbsoluteFill>
+    );
+  }
+  if (variant === 'iso') {
+    return (
+      <AbsoluteFill>
+        {base}
+        {blobs}
+        <AbsoluteFill style={{opacity: 0.35, transform: `translate(${px * 0.5}px, ${py * 0.5}px)`,
+          backgroundImage: `repeating-linear-gradient(30deg, ${hexA(theme.accent, 0.35)} 0 2px, transparent 2px 70px), repeating-linear-gradient(150deg, ${hexA(theme.accent, 0.35)} 0 2px, transparent 2px 70px)`}} />
+      </AbsoluteFill>
+    );
+  }
+  if (variant === 'glass') {
+    return (
+      <AbsoluteFill>
+        <AbsoluteFill style={{background: `linear-gradient(160deg, ${theme.bgTop} 0%, ${theme.bgBottom} 100%)`}} />
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} style={{position: 'absolute', width: W * 0.7, height: W * 0.7, borderRadius: '50%',
+            left: `${10 + 60 * seeded(seed + 'g', i) + Math.sin(t * 0.3 + i) * 8}%`, top: `${5 + 75 * seeded(seed + 'h', i) + Math.cos(t * 0.25 + i) * 6}%`,
+            marginLeft: -W * 0.35, background: [theme.primary, theme.accent, theme.highlight, '#38bdf8'][i], opacity: 0.45, filter: 'blur(70px)'}} />
+        ))}
+      </AbsoluteFill>
+    );
+  }
   if (variant === 'grid') {
     // Perspective tech floor scrolling toward the camera.
     return (

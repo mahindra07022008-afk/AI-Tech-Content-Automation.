@@ -61,7 +61,33 @@ telugu-tech premium generate --storyboard examples/demo_ai_future_premium.storyb
 telugu-tech premium preview --job my-short
 telugu-tech premium report
 ```
+Dependency audit: `docs/DEPENDENCIES.md`. Rollback: `docs/ROLLBACK.md`.
+
 Remotion licence: free for individuals and companies with up to 3 employees (larger companies need a company licence).
+
+### 12 editing styles (auto-selected per topic)
+
+| Style | Built for | Signature |
+|---|---|---|
+| `cinematic_documentary` | history / founder stories | serif type, film light-leaks, slow camera, depth of field |
+| `product_3d` | devices & hardware | **real-time 3D phone** (three.js + React Three Fiber via `@remotion/three`) |
+| `retro_pixel` | tech history | **PixiJS pixel art**, original 5×7 bitmap font, CRT scanlines |
+| `kinetic_typography` | punchy ideas | fast word-slams, 2-word captions, beat punches |
+| `holo_hud` | security / future tech | HUD brackets, rotating rings, scan line, cyan palette |
+| `product_launch` | launches | spotlight sweeps, studio backdrop, deep vignette |
+| `ai_news` | AI news | "AI NEWS" tag + date, house cinematic look |
+| `code_explainer` | GitHub repos, coding | terminal overlay, mono type, code/flow visuals |
+| `parallax_25d` | journeys / layers | strong parallax depth layers, rack focus |
+| `isometric` | architecture / stacks | isometric grid + `iso_stack` blocks |
+| `glassmorphism` | apps / UI | glass panels, blurred colour blobs, glass-pill captions |
+| `infographic` | numbers / reports | flat grid, charts & counters |
+
+Selection (`telugu_tech/styles.py`) scores topic keywords, the storyboard's visual types and source types,
+and penalises styles used in the last 3 videos (no samey output). Force one with `--style NAME` or a
+`"style"` field in the storyboard. If the WebGL 3D/pixel profile fails, the job re-renders with the
+**lite profile** (CSS-3D phone, canvas-2D pixels) and, if that fails too, the classic engine — each step logged.
+`--fps 60` renders a 60 fps master (MoneyPrinterTurbo is 30 fps-only, so 60 fps uses the logged FFmpeg mux).
+Rollback: see [docs/ROLLBACK.md](docs/ROLLBACK.md).
 
 ## Safety defaults (change only with intent)
 

@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "kind": "short",
+  "topic": "3D smartphone explainer: what is inside your phone (SoC chip, display, lithium-ion battery)",
+  "title_te": "మీ phone లోపల ఏముంది?",
+  "language": "te-IN",
+  "sources": [
+    {
+      "id": "s1",
+      "url": "https://www.androidauthority.com/what-is-an-soc-smartphone-chipsets-explained-1051600/",
+      "title": "What is an SoC? Smartphone chipsets explained",
+      "publisher": "Android Authority",
+      "published": "accessed 2026-11-25",
+      "tier": "news"
+    },
+    {
+      "id": "s2",
+      "url": "https://en.wikipedia.org/wiki/System_on_a_chip",
+      "title": "System on a chip",
+      "publisher": "Wikipedia",
+      "published": "accessed 2026-11-25",
+      "tier": "community"
+    },
+    {
+      "id": "s3",
+      "url": "https://www.nobelprize.org/prizes/chemistry/2019/press-release/",
+      "title": "The Nobel Prize in Chemistry 2019 — press release",
+      "publisher": "nobelprize.org (official)",
+      "published": "2019-10-09",
+      "tier": "primary"
+    }
+  ],
+  "facts": [
+    {
+      "claim": "A smartphone's main chip is a system on a chip (SoC) that combines the CPU, GPU, modem and other parts on one chip.",
+      "source_ids": [
+        "s1",
+        "s2"
+      ]
+    },
+    {
+      "claim": "The CPU runs the operating system and apps; the GPU renders graphics such as the user interface.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "claim": "The 2019 Nobel Prize in Chemistry was awarded for the development of lithium-ion batteries, now used in mobile phones.",
+      "source_ids": [
+        "s3"
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "id": 1,
+      "section": "hook",
+      "narration_te": "మీ phone లోపల అసలు ఏముందో ఎప్పుడైనా చూశారా?",
+      "caption_roman": "Mee phone lopala asalu emundo eppudaina choosaaraa?",
+      "visual": {
+        "type": "phone3d",
+        "mode": "hero",
+        "label": "What's inside?",
+        "screen": {
+          "title": "Hello!",
+          "lines": [
+            "Glass",
+            "Display",
+            "Chip",
+            "Battery"
+          ]
+        }
+      },
+      "transition": "fade",
+      "background": "studio",
+      "keywords": [
+        "phone"
+      ]
+    },
+    {
+      "id": 2,
+      "section": "intro",
+      "narration_te": "పొరలు పొరలుగా విడదీస్తే, glass, display, chip, battery కనిపిస్తాయి.",
+      "caption_roman": "Poralu poraluga vidadeesthe, glass, display, chip, battery kanipistaayi.",
+      "visual": {
+        "type": "phone3d",
+        "mode": "explode"
+      },
+      "transition": "zoom",
+      "background": "studio",
+      "keywords": [
+        "chip",
+        "battery"
+      ]
+    },
+    {
+      "id": 3,
+      "section": "background",
+      "narration_te": "అసలు మెదడు ఈ chip. దీన్ని SoC, అంటే System on a Chip అంటారు.",
+      "caption_roman": "Asalu medadu ee chip. Deenni SoC, ante System on a Chip antaaru.",
+      "visual": {
+        "type": "phone3d",
+        "mode": "chip",
+        "label": "SoC = System on a Chip"
+      },
+      "transition": "iris",
+      "background": "studio",
+      "keywords": [
+        "SoC",
+        "chip"
+      ]
+    },
+    {
+      "id": 4,
+      "section": "turning_point",
+      "narration_te": "ఒక్క chip లోనే CPU, GPU, modem లాంటివి కలిసి ఉంటాయి.",
+      "caption_roman": "Okka chip lone CPU, GPU, modem laantivi kalisi untaayi.",
+      "visual": {
+        "type": "iso_stack",
+        "layers": [
+          "CPU",
+          "GPU",
+          "Modem",
+          "Memory ctrl"
+        ]
+      },
+      "transition": "push",
+      "background": "iso",
+      "keywords": [
+        "CPU",
+        "GPU",
+        "modem"
+      ]
+    },
+    {
+      "id": 5,
+      "section": "explanation",
+      "narration_te": "CPU apps ని నడుపుతుంది, GPU screen మీద graphics ని గీస్తుంది.",
+      "caption_roman": "CPU apps ni naduputhundi, GPU screen meeda graphics ni geestundi.",
+      "visual": {
+        "type": "flow",
+        "nodes": [
+          {
+            "label": "CPU → runs apps",
+            "icon": "chip"
+          },
+          {
+            "label": "GPU → draws graphics",
+            "icon": "spark"
+          },
+          {
+            "label": "Screen",
+            "icon": "phone"
+          }
+        ]
+      },
+      "transition": "mask",
+      "background": "studio",
+      "keywords": [
+        "CPU",
+        "GPU"
+      ]
+    },
+    {
+      "id": 6,
+      "section": "example",
+      "narration_te": "ఈ lithium-ion battery ని అభివృద్ధి చేసినందుకు, 2019 లో Chemistry Nobel prize ఇచ్చారు.",
+      "caption_roman": "Ee lithium-ion battery ni abhivruddhi chesinanduku, 2019 lo Chemistry Nobel prize icchaaru.",
+      "visual": {
+        "type": "headline",
+        "text": "Nobel Prize 2019",
+        "subline": "lithium-ion batteries",
+        "icon": "star"
+      },
+      "transition": "zoom",
+      "camera": "push_in",
+      "background": "studio",
+      "keywords": [
+        "lithium-ion",
+        "Nobel"
+      ]
+    },
+    {
+      "id": 7,
+      "section": "conclusion",
+      "narration_te": "ఇవన్నీ కలిసి పనిచేస్తేనే, మీ చేతిలో ఈ చిన్న computer నడుస్తుంది.",
+      "caption_roman": "Ivanni kalisi panichesthene, mee chethilo ee chinna computer nadustundi.",
+      "visual": {
+        "type": "phone3d",
+        "mode": "camera",
+        "label": "A computer in your pocket"
+      },
+      "transition": "iris",
+      "background": "studio",
+      "keywords": [
+        "computer"
+      ]
+    },
+    {
+      "id": 8,
+      "section": "cta",
+      "narration_te": "ఇంకే gadget లోపల చూడాలి? Comment చేయండి!",
+      "caption_roman": "Inke gadget lopala choodaali? Comment cheyandi!",
+      "visual": {
+        "type": "outro",
+        "cta": "Next gadget edi?",
+        "icon": "phone"
+      },
+      "transition": "zoom",
+      "camera": "pull_out",
+      "background": "studio"
+    }
+  ],
+  "seo": {
+    "titles": [
+      "మీ Phone లోపల ఏముంది? 3D లో చూడండి | SoC, Battery Explained in Telugu",
+      "Smartphone Chip (SoC) అంటే ఏంటి? 3D Explainer | Telugu Tech",
+      "Inside a Smartphone in 3D — Telugu Tech Explainer"
+    ],
+    "description_te": "Smartphone ని 3D లో పొరలు పొరలుగా విడదీసి చూద్దాం: glass, display, SoC chip, battery. SoC అంటే CPU, GPU, modem లాంటివి ఒకే chip లో. Lithium-ion batteries ని అభివృద్ధి చేసినందుకు 2019 Chemistry Nobel prize వచ్చింది. 3D model ఒక illustration మాత్రమే (ఏ brand phone కాదు).",
+    "description_en": "A 3D explainer of what's inside a smartphone: cover glass, display, the system-on-a-chip (CPU, GPU, modem on one chip) and the lithium-ion battery, whose development won the 2019 Nobel Prize in Chemistry. The 3D phone is a generic illustration, not any brand's product.",
+    "hashtags": [
+      "#Smartphone",
+      "#SoC",
+      "#Tech3D",
+      "#Battery",
+      "#HowItWorks",
+      "#TeluguTechKathalu"
+    ],
+    "keywords": [
+      "smartphone Telugu",
+      "SoC Telugu",
+      "phone chip explained",
+      "lithium-ion battery Telugu",
+      "how phone works Telugu",
+      "3D tech explainer"
+    ],
+    "pinned_comment": "తర్వాత ఏ gadget ని 3D లో విడదీయాలి? 👇 (laptop? smartwatch? earbuds?)",
+    "thumbnail": {
+      "headline": "Inside your phone",
+      "subline": "3D explainer",
+      "icon": "phone",
+      "concept": "Studio-lit dark backdrop, glowing original phone icon, 'INSIDE YOUR PHONE'. Generic device, no brands."
+    }
+  }
+}

@@ -13,6 +13,7 @@ from pathlib import Path
 
 from . import doctor, pipeline, report, research, scheduler, storyboard as sbmod, youtube
 from .config import load_config
+from .styles import STYLES as STYLE_NAMES
 from .db import DB
 from .errors import AgentError, Category, ErrorLog, redact
 
@@ -114,12 +115,15 @@ def _pick_topic(db: DB, category: str | None):
 
 def cmd_generate(args, kind: str):
     cfg, db = _ctx(args)
+    if getattr(args, "fps", None):
+        cfg.raw["video"][kind]["fps"] = int(args.fps)  # 60 fps option (final mux via FFmpeg; MPT is 30 fps-only)
     if args.resume:
         row = db.get_job(args.resume)
         if not row:
             raise SystemExit(f"unknown job {args.resume}")
         res = pipeline.run(cfg, db, kind=row["kind"], topic=row["topic"], job_id=row["job_id"], redo_from=args.redo_from,
-                           visual_engine=getattr(args, "engine", None), style_profile=getattr(args, "style_profile", None))
+                           visual_engine=getattr(args, "engine", None), style_profile=getattr(args, "style_profile", None),
+                           edit_style=getattr(args, "style", None))
         _print(res)
         return 0 if res["quality_passed"] else 2
     sources: list[dict] = [{"id": f"s{i + 1}", "url": u, "title": u, "publisher": "", "published": "user-provided"}
@@ -146,7 +150,7 @@ def cmd_generate(args, kind: str):
     voice = {"mohan": cfg.get("voice", "primary"), "shruti": cfg.get("voice", "alternate")}.get(args.voice, args.voice)
     res = pipeline.run(cfg, db, kind=kind, topic=topic, storyboard_path=args.storyboard, sources=sources,
                        job_id=args.job_id, voice=voice, visual_engine=getattr(args, "engine", None),
-                       style_profile=getattr(args, "style_profile", None))
+                       style_profile=getattr(args, "style_profile", None), edit_style=getattr(args, "style", None))
     if topic_id:
         db.set_topic_status(topic_id, "used")
     else:
@@ -348,6 +352,10 @@ def cmd_premium(args):
             _set_yaml_value(cfg.path, "  style_profile:", f'  style_profile: "{os.path.relpath(prof["files"]["profile"], cfg.root)}"')
             print("Activated as premium.style_profile in config/project.yaml")
         return 0
+    if args.action == "gallery":
+        # one real rendered frame per editing style → data/reports/style_gallery.jpg
+        cmd = [sys.executable, str(cfg.root / "scripts" / "style_gallery.py")] + (["--lite"] if args.lite else [])
+        return subprocess.call(cmd, cwd=cfg.root)
     if args.action == "generate":
         ns = argparse.Namespace(**{**vars(args), "engine": "premium"})
         return cmd_generate(ns, "long" if args.long else "short")
@@ -380,11 +388,19 @@ def cmd_premium(args):
             props_f = cfg.jobs_dir / j["job_id"] / "premium_props.json"
             props = json.loads(props_f.read_text(encoding="utf-8")) if props_f.is_file() else {}
             ev_f = cfg.jobs_dir / j["job_id"] / "sfx_events.json"
-            rows.append({"job": j["job_id"], "engine": eng, "style": cp.get("visuals", {}).get("style_source", "—"),
+            vis = cp.get("visuals", {})
+            sb_f = cfg.jobs_dir / j["job_id"] / "storyboard.json"
+            sb = json.loads(sb_f.read_text(encoding="utf-8")) if sb_f.is_file() else {}
+            style_name = vis.get("style") or cp.get("storyboard", {}).get("style")
+            bits = ["auto-selected" if sb.get("style_auto_selected") else "chosen"]
+            bits += [f"profile {vis['profile']}"] if vis.get("profile") else []
+            bits += [f"{vis['fps']} fps"] if vis.get("fps") else []
+            style_desc = f"{style_name} ({', '.join(bits)})" if style_name else vis.get("style_source", "—")
+            rows.append({"job": j["job_id"], "engine": eng, "style": style_desc,
                          "duration": qa.get("duration"), "quality": "PASS" if qa.get("passed") else "FAIL" if qa else "—",
                          "failed": [c["check"] for c in qa.get("checks", []) if not c["passed"]],
                          "transitions": sorted({s.get("transition") for s in props.get("scenes", [])}),
-                         "cameras": sorted({s.get("camera") for s in props.get("scenes", [])}),
+                         "cameras": sorted({s.get("camera") or "auto (per visual)" for s in props.get("scenes", [])}),
                          "visuals": [s["visual"]["type"] for s in props.get("scenes", [])],
                          "sfx": sorted({e[1] for e in json.loads(ev_f.read_text())}) if ev_f.is_file() else [],
                          "caption_words": len(props.get("words", []))})
@@ -447,6 +463,8 @@ def build_parser() -> argparse.ArgumentParser:
         s.add_argument("--allow-duplicate", action="store_true")
         s.add_argument("--engine", choices=["premium", "classic"], help="visual engine (default: engine.visual_engine)")
         s.add_argument("--style-profile", help="style profile JSON (from `premium analyze-reference`)")
+        s.add_argument("--style", choices=sorted(STYLE_NAMES), help="force an editing style (default: auto-select)")
+        s.add_argument("--fps", type=int, choices=[30, 60], help="output frame rate (default 30)")
 
     s = sub.add_parser("preview", help="local preview page + contact sheet from the rendered file")
     s.add_argument("--job")
@@ -476,8 +494,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("name", nargs="?")
     s.add_argument("--approve", action="store_true")
 
-    s = sub.add_parser("premium", help="premium cinematic editor: analyze-reference | generate | preview | fix-errors | report")
-    s.add_argument("action", choices=["analyze-reference", "generate", "preview", "fix-errors", "report"])
+    s = sub.add_parser("premium", help="premium cinematic editor: analyze-reference | generate | preview | fix-errors | report | gallery")
+    s.add_argument("action", choices=["analyze-reference", "generate", "preview", "fix-errors", "report", "gallery"])
+    s.add_argument("--lite", action="store_true", help="gallery: render the no-WebGL lite profile")
     s.add_argument("--video", help="reference MP4 (analyze-reference)")
     s.add_argument("--name", help="name for the style profile")
     s.add_argument("--activate", action="store_true", help="make the analysed profile the default premium style")
@@ -493,6 +512,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--redo-from", choices=pipeline.STAGES)
     s.add_argument("--allow-duplicate", action="store_true")
     s.add_argument("--style-profile")
+    s.add_argument("--style", choices=sorted(STYLE_NAMES))
+    s.add_argument("--fps", type=int, choices=[30, 60])
     s.add_argument("--offline", action="store_true")
 
     s = sub.add_parser("webui", help="run MoneyPrinterTurbo WebUI on 127.0.0.1")

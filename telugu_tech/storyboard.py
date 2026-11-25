@@ -18,12 +18,16 @@ SECTION_LABELS = {
 VISUAL_TYPES = {"title", "question", "timeline", "stat", "flow", "branch_graph", "icon_grid", "code",
                 "bullets", "outro", "compare",
                 # premium engine (Remotion) types; the classic engine renders them as titles
-                "headline", "neural_net", "chart", "chat_ui", "globe", "molecule"}
+                "headline", "neural_net", "chart", "chat_ui", "globe", "molecule",
+                # editing-style visuals: real-time 3D phone (three.js/R3F), pixel art (PixiJS), isometric stack
+                "phone3d", "pixel_scene", "iso_stack"}
+PHONE_MODES = {"hero", "explode", "chip", "camera", "screen"}
+PIXEL_SCENES = {"title", "crt", "network", "globe", "unlock", "phone", "server", "rocket"}
 ICONS = {"code", "cloud", "users", "star", "branch", "ai", "chip", "globe", "lock", "rocket", "book", "bug",
          "laptop", "phone", "merge", "server", "money", "india", "check", "heart", "brain", "chart", "dna", "spark"}
 TRANSITIONS = {"fade", "slide", "zoom", "wipe", "whip", "mask", "iris", "glitch", "push"}
 CAMERAS = {"", "push_in", "pull_out", "pan_left", "pan_right", "orbit", "tilt", "drift"}
-BACKGROUNDS = {"", "aurora", "grid", "circuit", "dots", "space", "particles"}
+BACKGROUNDS = {"", "aurora", "grid", "circuit", "dots", "space", "particles", "studio", "pixel", "iso", "glass"}
 CLICKBAIT = ["shocking", "you won't believe", "100% guaranteed", "secret they", "gone wrong", "must watch",
              "nobody tells", "free money", "షాకింగ్"]
 TELUGU_RE = re.compile(r"[ఀ-౿]")
@@ -82,8 +86,17 @@ def validate(sb: dict, cfg=None, *, strict_duration: bool = False) -> list[str]:
     if order != sorted(order):
         p.append("sections are out of order")
 
+    if sb.get("style"):
+        from .styles import STYLES
+        if sb["style"] not in STYLES:
+            p.append(f"style must be one of {sorted(STYLES)}")
     for i, sc in enumerate(scenes, 1):
         nar, cap = sc.get("narration_te", ""), sc.get("caption_roman", "")
+        vv = sc.get("visual") or {}
+        if vv.get("type") == "phone3d" and vv.get("mode", "hero") not in PHONE_MODES:
+            p.append(f"scene {i}: phone3d mode must be one of {sorted(PHONE_MODES)}")
+        if vv.get("type") == "pixel_scene" and vv.get("scene", "title") not in PIXEL_SCENES:
+            p.append(f"scene {i}: pixel_scene scene must be one of {sorted(PIXEL_SCENES)}")
         if not nar.strip():
             p.append(f"scene {i}: empty narration")
         elif telugu_ratio(nar) < 0.4:

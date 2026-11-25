@@ -59,7 +59,7 @@ voice:
     cta: {rate: "+3%", pitch: "+2Hz"}
 
 video:
-  short: {width: 1080, height: 1920, fps: 30, min_seconds: 45, max_seconds: 60}
+  short: {width: 1080, height: 1920, fps: 30, min_seconds: 30, max_seconds: 60}   # fps 60 optional via --fps 60
   long: {width: 1920, height: 1080, fps: 30, min_seconds: 300, max_seconds: 480}
   transition_seconds: 0.45
   render_workers: 4

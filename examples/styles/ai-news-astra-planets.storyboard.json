@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "kind": "short",
+  "topic": "AI news: amateur astronomers use Codex and Astra to find possible exoplanet signals (OpenAI, 24 Nov 2026)",
+  "title_te": "AI తో కొత్త planets వేట!",
+  "language": "te-IN",
+  "date_label": "24 NOV 2026",
+  "sources": [
+    {
+      "id": "s1",
+      "url": "https://openai.com/index/searching-for-distant-planets-with-astra",
+      "title": "Searching for distant planets with Astra",
+      "publisher": "OpenAI (official)",
+      "published": "2026-11-24",
+      "tier": "primary"
+    }
+  ],
+  "facts": [
+    {
+      "claim": "Astronomers have confirmed more than 6,400 exoplanets since the first ones were announced in 1992.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "claim": "A transiting planet blocks a tiny amount of its star's light, showing as a dip in brightness.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "claim": "One amateur used Codex to search Kepler observations of about 100,000 stars; the search flagged more than 200 signals, including 10 from previously confirmed planets.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "claim": "Star KIC 5689121 dims every 13.8 days; if a planet causes it, it could be about 2.4 times Earth's diameter.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "claim": "A SETI Institute astronomer independently found two of the same signals; confirmation could take months or years. Another candidate is with NASA TESS researchers for further analysis.",
+      "source_ids": [
+        "s1"
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "id": 1,
+      "section": "hook",
+      "narration_te": "ఒక AI tool తో, ఇద్దరు amateur astronomers కొత్త planets కోసం వెతికారు!",
+      "caption_roman": "Oka AI tool tho, iddaru amateur astronomers kotta planets kosam vethikaaru!",
+      "visual": {
+        "type": "headline",
+        "text": "AI hunts new planets",
+        "icon": "globe"
+      },
+      "transition": "fade",
+      "camera": "push_in",
+      "background": "space",
+      "keywords": [
+        "AI",
+        "planets"
+      ]
+    },
+    {
+      "id": 2,
+      "section": "intro",
+      "narration_te": "ఇప్పటివరకు 6,400 కి పైగా exoplanets ని astronomers confirm చేశారు.",
+      "caption_roman": "Ippativaraku 6,400 ki paigaa exoplanets ni astronomers confirm chesaaru.",
+      "visual": {
+        "type": "stat",
+        "value": "6,400+",
+        "label": "confirmed exoplanets since 1992",
+        "ring": 1
+      },
+      "transition": "zoom",
+      "camera": "pull_out",
+      "background": "grid",
+      "keywords": [
+        "6,400",
+        "exoplanets"
+      ]
+    },
+    {
+      "id": 3,
+      "section": "background",
+      "narration_te": "Planet star ముందు నుంచి వెళ్ళినప్పుడు, ఆ star వెలుగు కొంచెం తగ్గుతుంది.",
+      "caption_roman": "Planet star mundu nunchi vellinappudu, aa star velugu konchem taggutundi.",
+      "visual": {
+        "type": "chart",
+        "chart": "line",
+        "title": "Star brightness (illustration)",
+        "hideValues": true,
+        "data": [
+          {
+            "label": "",
+            "value": 100
+          },
+          {
+            "label": "",
+            "value": 100
+          },
+          {
+            "label": "dip",
+            "value": 70
+          },
+          {
+            "label": "",
+            "value": 100
+          },
+          {
+            "label": "",
+            "value": 100
+          },
+          {
+            "label": "dip",
+            "value": 70
+          },
+          {
+            "label": "",
+            "value": 100
+          }
+        ]
+      },
+      "transition": "mask",
+      "background": "grid",
+      "keywords": [
+        "Planet",
+        "star"
+      ]
+    },
+    {
+      "id": 4,
+      "section": "turning_point",
+      "narration_te": "ఒకరు Codex తో Kepler telescope data లో, దాదాపు లక్ష stars ని వెతికారు.",
+      "caption_roman": "Okaru Codex tho Kepler telescope data lo, daadaapu laksha stars ni vethikaaru.",
+      "visual": {
+        "type": "code",
+        "filename": "planet search (illustrative)",
+        "lines": [
+          "load(kepler_light_curves)",
+          "find(repeating_dips)"
+        ],
+        "suggestion": [
+          "→ 200+ signals flagged"
+        ]
+      },
+      "transition": "glitch",
+      "camera": "tilt",
+      "background": "dots",
+      "keywords": [
+        "Codex",
+        "Kepler"
+      ]
+    },
+    {
+      "id": 5,
+      "section": "explanation",
+      "narration_te": "200 కి పైగా signals దొరికాయి. అందులో 10, ఇప్పటికే తెలిసిన planets.",
+      "caption_roman": "200 ki paigaa signals dorikaayi. Andulo 10, ippatike telisina planets.",
+      "visual": {
+        "type": "chart",
+        "chart": "bar",
+        "title": "Signals flagged",
+        "data": [
+          {
+            "label": "Signals (200+)",
+            "value": 200
+          },
+          {
+            "label": "Known planets",
+            "value": 10,
+            "highlight": true
+          }
+        ]
+      },
+      "transition": "push",
+      "camera": "orbit",
+      "background": "grid",
+      "keywords": [
+        "200",
+        "10"
+      ]
+    },
+    {
+      "id": 6,
+      "section": "example",
+      "narration_te": "ఒక star లో 13.8 రోజులకు ఒకసారి వెలుగు తగ్గుతోంది. Planet అయితే, భూమి కంటే 2.4 రెట్లు వెడల్పు.",
+      "caption_roman": "Oka star lo 13.8 rojulaku okasari velugu taggutondi. Planet aithe, bhoomi kante 2.4 rettlu vedalpu.",
+      "visual": {
+        "type": "globe",
+        "label": "KIC 5689121 · every 13.8 days"
+      },
+      "transition": "iris",
+      "camera": "drift",
+      "background": "space",
+      "keywords": [
+        "13.8",
+        "2.4"
+      ]
+    },
+    {
+      "id": 7,
+      "section": "conclusion",
+      "narration_te": "SETI astronomer కూడా అవే రెండు signals ని విడిగా కనుగొన్నారు, కానీ confirm కి నెలలు, ఏళ్ళు పట్టొచ్చు.",
+      "caption_roman": "SETI astronomer kooda ave rendu signals ni vidiga kanugonnaaru, kaani confirm ki nelalu, ellu pattochu.",
+      "visual": {
+        "type": "bullets",
+        "items": [
+          "Independent check: 2 signals",
+          "One candidate with TESS team",
+          "Not confirmed yet"
+        ]
+      },
+      "transition": "whip",
+      "camera": "pan_left",
+      "keywords": [
+        "SETI",
+        "confirm"
+      ]
+    },
+    {
+      "id": 8,
+      "section": "cta",
+      "narration_te": "AI తో మీరు ఏం కనిపెడతారు? Comment చేయండి!",
+      "caption_roman": "AI tho meeru em kanipedathaaru? Comment cheyandi!",
+      "visual": {
+        "type": "outro",
+        "cta": "AI tho em kanipedathaaru?",
+        "icon": "rocket"
+      },
+      "transition": "zoom",
+      "camera": "pull_out"
+    }
+  ],
+  "seo": {
+    "titles": [
+      "AI తో కొత్త planets వేట! Codex + Kepler data | AI News Telugu",
+      "ఇద్దరు amateur astronomers, AI, 200+ signals — Exoplanet కథ | Telugu",
+      "AI Finds Possible Exoplanet Signals — Explained in Telugu"
+    ],
+    "description_te": "OpenAI 24 నవంబర్ 2026 article ప్రకారం, ఇద్దరు amateur astronomers Codex, Astra తో public telescope data లో planets కోసం వెతికారు. ఒక search లో 200 కి పైగా signals దొరికాయి (10 ఇప్పటికే తెలిసిన planets). SETI astronomer రెండు signals ని విడిగా కనుగొన్నారు. ఇవి ఇంకా confirm కాలేదు.",
+    "description_en": "Per OpenAI's 24 Nov 2026 article: two amateur astronomers used Codex and Astra on public telescope data. One search of ~100,000 Kepler stars flagged 200+ signals (10 already-known planets); a SETI Institute astronomer independently found two of the same signals. These are candidates, not confirmed planets.",
+    "hashtags": [
+      "#AI",
+      "#Exoplanets",
+      "#Kepler",
+      "#Codex",
+      "#SpaceTech",
+      "#TeluguTechKathalu"
+    ],
+    "keywords": [
+      "AI news Telugu",
+      "exoplanet Telugu",
+      "Kepler telescope",
+      "Codex AI",
+      "space Telugu",
+      "planet discovery AI",
+      "Telugu tech news"
+    ],
+    "pinned_comment": "ఇవి ఇంకా candidates మాత్రమే — confirm అయితే update ఇస్తాం! 🔭 మీరు AI తో ఏం వెతకాలనుకుంటున్నారు? 👇",
+    "thumbnail": {
+      "headline": "AI hunts planets",
+      "subline": "200+ signals",
+      "icon": "globe",
+      "concept": "Space cinematic, glowing original globe icon, 'AI HUNTS PLANETS'. No logos."
+    }
+  }
+}
