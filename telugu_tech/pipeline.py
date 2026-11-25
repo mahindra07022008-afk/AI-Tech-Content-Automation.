@@ -9,7 +9,7 @@ import zlib
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import audio, engine, premium, quality, seo, storyboard as sbmod, subtitles, thumbnail, tts, visuals
+from . import audio, engine, premium, quality, seo, storyboard as sbmod, styles, subtitles, thumbnail, tts, visuals
 from .db import DB, sha256_file
 from .errors import AgentError, Category, ErrorLog
 
@@ -46,7 +46,8 @@ class Job:
 
 def run(cfg, db: DB, *, kind: str, topic: str, storyboard_path: str | None = None, sources: list[dict] | None = None,
         job_id: str | None = None, voice: str | None = None, redo_from: str | None = None,
-        visual_engine: str | None = None, style_profile: str | None = None, log=print) -> dict:
+        visual_engine: str | None = None, style_profile: str | None = None, edit_style: str | None = None,
+        log=print) -> dict:
     job_id = job_id or new_job_id(kind, topic)
     job = Job(cfg, db, job_id, kind, topic, log)
     if redo_from:
@@ -56,7 +57,7 @@ def run(cfg, db: DB, *, kind: str, topic: str, storyboard_path: str | None = Non
         log(f"redoing stages from '{redo_from}' (earlier checkpoints reused)")
     t0 = time.time()
     try:
-        result = _run(job, storyboard_path, sources or [], voice, visual_engine, style_profile)
+        result = _run(job, storyboard_path, sources or [], voice, visual_engine, style_profile, edit_style)
         db.set_job_status(job_id, "completed", "quality")
         result["elapsed_seconds"] = round(time.time() - t0, 1)
         (job.dir / "result.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -71,14 +72,36 @@ def run(cfg, db: DB, *, kind: str, topic: str, storyboard_path: str | None = Non
         raise
 
 
+def _styled_theme(th, style: dict | None):
+    """Apply the editing style's palette to the thumbnail theme (brand layout & text colour unchanged)."""
+    if not style or not style.get("theme"):
+        return th
+    from dataclasses import replace
+    t = style["theme"]
+    m = {"primary": "primary", "accent": "accent", "highlight": "highlight", "bgTop": "bg_top", "bgBottom": "bg_bottom"}
+    return replace(th, **{m[k]: visuals.hex_rgb(v) for k, v in t.items() if k in m})
+
+
+def recent_styles(db: DB, exclude: str | None = None, limit: int = 5) -> list[str]:
+    """Editing styles of the most recent premium videos (newest first) — used to avoid repetitive output."""
+    out = []
+    for row in db.jobs(limit=30):
+        if row["job_id"] == exclude:
+            continue
+        st = db.checkpoint(row["job_id"]).get("storyboard", {}).get("style")
+        if st:
+            out.append(st)
+        if len(out) >= limit:
+            break
+    return out
+
+
 def _run(job: Job, storyboard_path: str | None, sources: list[dict], voice: str | None,
-         visual_engine: str | None = None, style_profile: str | None = None) -> dict:
+         visual_engine: str | None = None, style_profile: str | None = None, edit_style: str | None = None) -> dict:
     cfg, log, kind = job.cfg, job.log, job.kind
     cp = job.db.checkpoint(job.job_id)
     mode = (visual_engine or cp.get("audio", {}).get("visual_engine") or cfg.get("engine", "visual_engine", default="premium"))
     premium_on = mode == "premium"
-    style = premium.load_style(cfg, style_profile or cp.get("audio", {}).get("style_profile")) if premium_on else None
-    beat = 60.0 / style["bpm"] if style else None
     sb_file = job.path("storyboard.json")
 
     # 1 ── storyboard
@@ -90,9 +113,21 @@ def _run(job: Job, storyboard_path: str | None, sources: list[dict], voice: str 
             sb = sbmod.generate(cfg, job.topic, kind, sources, log=log)
         sb["kind"] = kind
         sbmod.assert_valid(sb, cfg)
+        if edit_style:
+            sb["style"] = edit_style
+        if premium_on and not sb.get("style"):
+            # automatic editing-style selection (topic + visual types, penalising styles used in recent videos)
+            sb["style"] = styles.auto_select(sb, recent_styles(job.db, exclude=job.job_id))
+            sb["style_auto_selected"] = True
         sbmod.save(sb, sb_file)
-        job.mark("storyboard", scenes=len(sb["scenes"]))
+        job.mark("storyboard", scenes=len(sb["scenes"]), style=sb.get("style"))
     sb = sbmod.load(sb_file)
+    style = (premium.load_style(cfg, style_profile or cp.get("audio", {}).get("style_profile"), sb.get("style"))
+             if premium_on else None)
+    beat = 60.0 / style["bpm"] if style else None
+    if style:
+        log(f"   editing style: {style['name']} — {style.get('label', '')}"
+            + (" (auto-selected)" if sb.get("style_auto_selected") else ""))
 
     # 2 ── voice (per scene) with automatic duration repair via speaking rate
     vdir = job.path("voice")
@@ -133,7 +168,7 @@ def _run(job: Job, storyboard_path: str | None, sources: list[dict], voice: str 
         timings = audio.build_narration(scene_audio, narr, gap=gap, beat=beat)
         total = timings[-1]["end"]
         music = job.path("music.wav")
-        mood = "uplifting" if kind == "short" else "curious"
+        mood = (style or {}).get("music_mood") or ("uplifting" if kind == "short" else "curious")
         music_meta = audio.synth_music(total, music, seed=zlib.crc32(job.job_id.encode()) % 1000, mood=mood,
                                        **({"bpm": style["bpm"]} if style else {}))
         if premium_on:
@@ -166,15 +201,17 @@ def _run(job: Job, storyboard_path: str | None, sources: list[dict], voice: str 
     material = job.path("material.mp4")
     words_file = job.path("words.json")
     if premium_on:
-        words_file.write_text(json.dumps(premium.word_timeline(sb, scene_audio, timings), ensure_ascii=False, indent=1),
-                              encoding="utf-8")
+        words_file.write_text(json.dumps(premium.fit_caption_pages(premium.word_timeline(sb, scene_audio, timings), style, cfg, kind),
+                                         ensure_ascii=False, indent=1), encoding="utf-8")
     if not (job.done("visuals") and material.is_file()):
         info = None
         if premium_on:
             log("④ visuals: PREMIUM — Remotion motion graphics + word-by-word captions + FFmpeg grade")
             try:
-                info = premium.render_visuals(cfg, sb, timings, json.loads(words_file.read_text(encoding="utf-8")), total,
-                                              kind, job.dir, style, log=log)
+                info = premium.render_visuals(
+                    cfg, sb, timings, json.loads(words_file.read_text(encoding="utf-8")), total, kind, job.dir, style, log=log,
+                    on_fallback=lambda e, action: job.errlog.record(stage="visuals", exc=e, job_id=job.job_id, repaired=True,
+                                                                    repair_action=action))
             except AgentError as exc:
                 if exc.is_blocker or not cfg.get("premium", "fallback_to_classic", default=True):
                     raise
@@ -215,8 +252,8 @@ def _run(job: Job, storyboard_path: str | None, sources: list[dict], voice: str 
     thumb, cover = job.path("final/thumbnail.jpg"), job.path("final/cover_short.png")
     if not job.done("thumbnail"):
         log("⑦ thumbnail + Shorts cover")
-        thumbnail.make_thumbnail(visuals.theme_from_cfg(cfg, "long"), sb, thumb)
-        thumbnail.make_cover(visuals.theme_from_cfg(cfg, "short"), sb, cover)
+        thumbnail.make_thumbnail(_styled_theme(visuals.theme_from_cfg(cfg, "long"), style), sb, thumb)
+        thumbnail.make_cover(_styled_theme(visuals.theme_from_cfg(cfg, "short"), style), sb, cover)
         job.mark("thumbnail")
 
     # 8 ── seo

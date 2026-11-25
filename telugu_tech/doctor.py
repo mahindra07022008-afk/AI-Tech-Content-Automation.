@@ -191,8 +191,13 @@ class Doctor:
             import json as _j
             ver = _j.loads(pj.read_text())["version"]
         self.add("Remotion packages", mods.is_dir(), f"remotion {ver or 'missing'}", Category.DEPENDENCY, repaired)
+        import json as _j2
+        for pkg in ("@remotion/three", "three", "@react-three/fiber", "pixi.js"):
+            pj2 = rdir / "node_modules" / pkg / "package.json"
+            self.add(f"3D/pixel package {pkg}", pj2.is_file(), _j2.loads(pj2.read_text())["version"] if pj2.is_file() else "missing",
+                     Category.DEPENDENCY)
         fonts_dir = rdir / "public" / "fonts"
-        need = {"NotoSansDisplay-Bold.ttf", "NotoSansTelugu-Bold.ttf", "NotoSansMono-Bold.ttf"}
+        need = {"NotoSansDisplay-Bold.ttf", "NotoSansTelugu-Bold.ttf", "NotoSansMono-Bold.ttf", "NotoSerifDisplay-Bold.ttf"}
         missing = [f for f in need if not (fonts_dir / f).is_file()]
         repaired = ""
         if missing and self.fix:
@@ -208,6 +213,34 @@ class Doctor:
         self.add("Chrome headless shell for Remotion", bool(b), b or "none (Remotion would try to download one)",
                  Category.DEPENDENCY)
         if smoke and mods.is_dir():
+            # WebGL smoke test: one frame of the real-time 3D phone + one Pixi pixel scene
+            import json as _j3
+            props = {"width": 1080, "height": 1920, "fps": 30, "durationInFrames": 60, "profile": "full",
+                     "theme": {"primary": "#7C3AED", "accent": "#22D3EE", "highlight": "#FACC15", "bgTop": "#070B18",
+                               "bgBottom": "#1E1B4B", "text": "#F8FAFC", "danger": "#F43F5E"},
+                     "style": {"name": "product_3d", "source": "doctor", "bpm": 100, "transitionSeconds": 0.4, "cameraIntensity": 0.5,
+                               "zoomRange": [1, 1.1], "motionBlur": False, "parallax": 0.5, "beatPunch": 0, "subCutSeconds": 0,
+                               "overlay": "studio", "font": "display", "dof": True,
+                               "caption": {"template": "pop_highlight", "position": 0.7, "fontSize": 74, "maxWords": 3, "uppercase": False}},
+                     "fonts": {"display": "TTDisplay", "telugu": "TTTelugu", "mono": "TTMono", "body": "TTDisplay", "serif": "TTSerif"},
+                     "scenes": [{"id": 1, "section": "hook", "start": 0, "end": 1, "speechStart": 0, "speechEnd": 1, "transition": "fade",
+                                 "camera": "", "background": "studio", "visual": {"type": "phone3d", "mode": "hero"}},
+                                {"id": 2, "section": "intro", "start": 1, "end": 2, "speechStart": 1, "speechEnd": 2, "transition": "fade",
+                                 "camera": "", "background": "pixel", "visual": {"type": "pixel_scene", "scene": "crt", "text": "OK"}}],
+                     "words": [], "beats": []}
+            (rdir / "out").mkdir(exist_ok=True)
+            pf = rdir / "out" / "webgl_smoke.json"
+            pf.write_text(_j3.dumps(props))
+            ok_all = True
+            for fr in (15, 45):
+                outp = rdir / "out" / f"webgl_smoke_{fr}.png"
+                cmd = ["npx", "remotion", "still", "src/index.ts", "TeluguTechShort", str(outp), f"--frame={fr}", "--gl=swangle",
+                       f"--props={pf}", "--log=error"] + ([f"--browser-executable={b}"] if b else [])
+                r = _run(cmd, cwd=rdir, timeout=600)
+                ok_all &= r.returncode == 0 and outp.is_file()
+            self.add("WebGL smoke (three.js phone + Pixi pixel scene)", ok_all,
+                     "full 3D profile available" if ok_all else "WebGL unavailable → renders will use the lite profile",
+                     Category.RENDER)
             out = rdir / "out" / "smoke.png"
             cmd = ["npx", "remotion", "still", "src/index.ts", "TeluguTechShort", str(out), "--frame=150", "--gl=swangle",
                    "--log=error"] + ([f"--browser-executable={b}"] if b else [])

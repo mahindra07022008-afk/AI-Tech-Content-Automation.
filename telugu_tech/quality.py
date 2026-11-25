@@ -85,6 +85,43 @@ def static_segments(path: Path, fps_sample: int = 4, still_seconds: float = 2.5)
     return {"blank_seconds": blank, "longest_static_seconds": longest / fps_sample}
 
 
+def audio_presence(path: Path) -> dict:
+    """Detect missing/silent audio: mean volume of the whole track and the longest silent stretch."""
+    r = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", str(path), "-map", "0:a:0?", "-af",
+                        "volumedetect,silencedetect=noise=-50dB:d=2", "-f", "null", "-"], capture_output=True, text=True)
+    mean = re.findall(r"mean_volume:\s+(-?[\d.]+) dB", r.stderr)
+    sil = [float(x) for x in re.findall(r"silence_duration:\s+([\d.]+)", r.stderr)]
+    return {"mean_volume_db": float(mean[-1]) if mean else None, "longest_silence": max(sil) if sil else 0.0}
+
+
+def flash_check(path: Path, fps_sample: int = 30) -> dict:
+    """Photosensitivity guard (WCAG 2.3.1-style): >3 flashes in any 1 s fails.
+
+    Frames are sampled at the delivery rate (30 fps; lower rates alias fast strobes into steady
+    patterns). A big transition is a ≥20% full-scale change in mean luma between samples; a flash is
+    a pair of opposing big transitions, counted over a sliding one-second window."""
+    import numpy as np
+    w, h = 54, 96
+    r = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-vf", f"fps={fps_sample},scale={w}:{h},format=gray",
+                        "-f", "rawvideo", "-"], capture_output=True)
+    a = np.frombuffer(r.stdout, dtype=np.uint8)
+    n = a.size // (w * h)
+    if n < 3:
+        return {"max_flashes_per_second": 0}
+    luma = a[: n * w * h].reshape(n, h * w).astype(np.float32).mean(1)
+    d = np.diff(luma)
+    big = np.nonzero(np.abs(d) > 0.2 * 255)[0]
+    # an opposing transition = a big change whose direction reverses the previous big change
+    opposing = [int(big[k]) for k in range(1, len(big)) if np.sign(d[big[k]]) != np.sign(d[big[k - 1]])]
+    worst, j = 0, 0
+    for i, f in enumerate(opposing):
+        while opposing[j] <= f - fps_sample:
+            j += 1
+        worst = max(worst, i - j + 1)
+    # each flash is two opposing transitions (up+down); round up so a lone pair counts as one flash
+    return {"max_flashes_per_second": (worst + 1) // 2, "opposing_transitions_max_per_second": worst}
+
+
 def premium_caption_fit(words: list[dict], style: dict, cfg, kind: str) -> tuple[bool, str]:
     """Check every word-by-word caption page fits ≤2 lines inside the safe area (real font metrics)."""
     from .premium import caption_pages
@@ -95,7 +132,8 @@ def premium_caption_fit(words: list[dict], style: dict, cfg, kind: str) -> tuple
     size = int(cap["fontSize"] * sc)
     font_path = cfg.resolve(cfg.get("premium", "remotion_dir", default="remotion")) / "public/fonts/NotoSansDisplay-Bold.ttf"
     f = ImageFont.truetype(str(font_path), size)
-    max_w = 0.8 * W
+    pad = {"glass_pill": 64, "hud_bracket": 64, "pixel_block": 56}.get(cap.get("template", ""), 0) * sc
+    max_w = 0.8 * W - pad
     gap = 22 * sc
     top_limit = H * 0.55
     bottom_limit = H * (1 - cfg.get("captions", "safe_bottom_short" if kind == "short" else "safe_bottom_long"))
@@ -139,7 +177,7 @@ def validate_video(path: Path, cfg, kind: str, *, sb: dict | None = None, timing
         ar = s["width"] / s["height"]
         add("aspect ratio", abs(ar - (9 / 16 if kind == "short" else 16 / 9)) < 0.01, f"{ar:.4f}")
         fps = _fps(s.get("avg_frame_rate", "0/1"))
-        add("frame rate 30 fps", abs(fps - v["fps"]) < 0.05, f"{fps:.3f}")
+        add(f"frame rate {v['fps']} fps", abs(fps - v["fps"]) < 0.05, f"{fps:.3f}")
         add("video codec H.264 yuv420p", s.get("codec_name") == "h264" and s.get("pix_fmt") == "yuv420p",
             f"{s.get('codec_name')} {s.get('pix_fmt')}")
     else:
@@ -157,6 +195,11 @@ def validate_video(path: Path, cfg, kind: str, *, sb: dict | None = None, timing
         add("no clipping (true peak ≤ -1.0 dBFS)", tp is not None and tp <= -1.0, f"{tp} dBFS")
         bf = black_frames(path)
         add("no long black segments", bf < 1.0, f"{bf:.2f}s black")
+        ap = audio_presence(path)
+        add("audio present (not silent)", ap["mean_volume_db"] is not None and ap["mean_volume_db"] > -40
+            and ap["longest_silence"] < 3.0, f"mean {ap['mean_volume_db']} dB, longest silence {ap['longest_silence']:.1f}s")
+        fl = flash_check(path)
+        add("no excessive flashing (≤3 flashes/s)", fl["max_flashes_per_second"] <= 3, f"max {fl['max_flashes_per_second']} flashes/s")
         st = static_segments(path)
         add("no blank or frozen scenes", st["blank_seconds"] < 0.5 and st["longest_static_seconds"] < 2.5,
             f"blank {st['blank_seconds']:.1f}s, longest static {st['longest_static_seconds']:.1f}s")
@@ -174,6 +217,8 @@ def validate_video(path: Path, cfg, kind: str, *, sb: dict | None = None, timing
         spoken_ok = all(w["start"] < w["end"] for w in premium_words) and all(
             premium_words[i]["start"] <= premium_words[i + 1]["start"] for i in range(len(premium_words) - 1))
         last = premium_words[-1]["end"] if premium_words else 0
+        first = premium_words[0]["start"] if premium_words else 99
+        add("hook starts within 2 s (voice + caption)", first <= 0.6, f"first word at {first:.2f}s")
         add("caption words synced to speech (monotonic, within video)", spoken_ok and last <= dur + 0.05,
             f"{len(premium_words)} words, last ends {last:.2f}s")
     if theme is not None and sb is not None and timings is not None and premium_words is None:

@@ -71,6 +71,13 @@ def render_with_ffmpeg(*, material_mp4: Path, audio_wav: Path, out_mp4: Path) ->
 
 def render_final(cfg, *, job_id: str, material_mp4: Path, audio_wav: Path, script_text: str, kind: str, out_mp4: Path,
                  errlog: ErrorLog | None = None, log=print) -> dict:
+    fps = int(cfg.get("video", kind, "fps", default=30))
+    if fps != 30:
+        # MoneyPrinterTurbo writes at a fixed 30 fps (app/services/video.py: fps = 30); a 60 fps master
+        # would be resampled, so high-frame-rate renders are muxed directly with FFmpeg instead.
+        log(f"  {fps} fps master: MoneyPrinterTurbo is 30 fps-only → direct FFmpeg mux (no re-encode of video)")
+        return {**render_with_ffmpeg(material_mp4=material_mp4, audio_wav=audio_wav, out_mp4=out_mp4),
+                "reason": "MoneyPrinterTurbo outputs 30 fps only"}
     try:
         return render_with_mpt(cfg, job_id=job_id, material_mp4=material_mp4, audio_wav=audio_wav,
                                script_text=script_text, kind=kind, out_mp4=out_mp4, log=log)

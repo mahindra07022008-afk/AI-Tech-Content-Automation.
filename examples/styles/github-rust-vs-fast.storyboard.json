@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "kind": "short",
+  "topic": "Trending GitHub repos: rust-anything vs fast-anything (rewrite everything in Rust, or only the slow 5%?)",
+  "title_te": "మొత్తం Rust లోకా, లేక 5% మాత్రమేనా?",
+  "language": "te-IN",
+  "sources": [
+    {
+      "id": "s1",
+      "url": "https://github.com/erkamyaman/rust-anything",
+      "title": "erkamyaman/rust-anything README (MIT)",
+      "publisher": "GitHub",
+      "published": "2026-11-16 (created); README read 2026-11-25",
+      "tier": "repo"
+    },
+    {
+      "id": "s2",
+      "url": "https://github.com/EL4CTEO/fast-anything",
+      "title": "EL4CTEO/fast-anything README (MIT)",
+      "publisher": "GitHub",
+      "published": "2026-11-21 (created); README read 2026-11-25",
+      "tier": "repo"
+    },
+    {
+      "id": "s3",
+      "url": "https://api.github.com/search/repositories?q=created:>2026-11-10+stars:>200&sort=stars",
+      "title": "GitHub search API: star counts on 2026-11-25 (rust-anything 9,337; fast-anything 3,709)",
+      "publisher": "GitHub API",
+      "published": "2026-11-25",
+      "tier": "repo"
+    }
+  ],
+  "facts": [
+    {
+      "claim": "rust-anything records what the original app does; a coding agent writes the Rust one piece at a time and every piece is checked against the recording.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "claim": "rust-anything's Prettier port was 19x faster in the author's measurement with byte-identical output.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "claim": "fast-anything profiles an app, ports only the slow functions to Rust, and verifies them against recorded real calls (up to 500); it is reversible.",
+      "source_ids": [
+        "s2"
+      ]
+    },
+    {
+      "claim": "On 25 Nov 2026 rust-anything had about 9.3k stars and fast-anything about 3.7k; both MIT licensed.",
+      "source_ids": [
+        "s1",
+        "s2",
+        "s3"
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "id": 1,
+      "section": "hook",
+      "narration_te": "Rust లో మొత్తం app మార్చాలా, లేక slow గా ఉన్న 5% మాత్రమేనా?",
+      "caption_roman": "Rust lo mottham app maarchaalaa, leka slow ga unna 5% maatramenaa?",
+      "visual": {
+        "type": "headline",
+        "text": "Rewrite it all… or just 5%?",
+        "icon": "code"
+      },
+      "transition": "fade",
+      "camera": "push_in",
+      "keywords": [
+        "Rust",
+        "5%"
+      ]
+    },
+    {
+      "id": 2,
+      "section": "intro",
+      "narration_te": "ఈ వారం GitHub లో రెండు repos trend అవుతున్నాయి, రెండూ ఒకదానికొకటి వ్యతిరేకం.",
+      "caption_roman": "Ee vaaram GitHub lo rendu repos trend avutunnaayi, rendoo okadaanikokati vyathirekam.",
+      "visual": {
+        "type": "compare",
+        "left": {
+          "title": "rust-anything",
+          "points": [
+            "Whole app → Rust",
+            "~9.3k stars"
+          ]
+        },
+        "right": {
+          "title": "fast-anything",
+          "points": [
+            "Only slow 5% → Rust",
+            "~3.7k stars"
+          ]
+        }
+      },
+      "transition": "whip",
+      "camera": "push_in",
+      "keywords": [
+        "GitHub",
+        "repos"
+      ]
+    },
+    {
+      "id": 3,
+      "section": "background",
+      "narration_te": "rust-anything ముందు మీ app ఏం చేస్తుందో record చేస్తుంది.",
+      "caption_roman": "rust-anything mundu mee app em chestundo record chestundi.",
+      "visual": {
+        "type": "flow",
+        "nodes": [
+          {
+            "label": "Record the app",
+            "icon": "server"
+          },
+          {
+            "label": "Port piece → Rust",
+            "icon": "code"
+          },
+          {
+            "label": "Check vs recording",
+            "icon": "check"
+          }
+        ]
+      },
+      "transition": "mask",
+      "keywords": [
+        "record"
+      ]
+    },
+    {
+      "id": 4,
+      "section": "turning_point",
+      "narration_te": "తర్వాత AI agent Rust లో ముక్కలు ముక్కలుగా రాస్తుంది, ప్రతి ముక్కా recording తో match అవ్వాలి.",
+      "caption_roman": "Tharvatha AI agent Rust lo mukkalu mukkaluga raastundi, prathi mukkaa recording tho match avvaali.",
+      "visual": {
+        "type": "code",
+        "filename": "terminal (illustrative)",
+        "lines": [
+          "$ rust-anything record",
+          "$ rust-anything bridge"
+        ],
+        "suggestion": [
+          "$ rust-anything diff   # all must match"
+        ]
+      },
+      "transition": "push",
+      "camera": "tilt",
+      "keywords": [
+        "AI",
+        "agent",
+        "Rust"
+      ]
+    },
+    {
+      "id": 5,
+      "section": "explanation",
+      "narration_te": "వాళ్ళ Prettier port, వాళ్ళ test లో 19 రెట్లు వేగంగా, same output ఇచ్చింది.",
+      "caption_roman": "Vaalla Prettier port, vaalla test lo 19 rettlu veganga, same output icchindi.",
+      "visual": {
+        "type": "stat",
+        "value": "19x",
+        "label": "faster · same output (author's test)",
+        "ring": 1
+      },
+      "transition": "zoom",
+      "camera": "pull_out",
+      "keywords": [
+        "19",
+        "Prettier"
+      ]
+    },
+    {
+      "id": 6,
+      "section": "example",
+      "narration_te": "fast-anything మాత్రం, అసలు slow గా ఉన్న functions ని మాత్రమే Rust లోకి మారుస్తుంది.",
+      "caption_roman": "fast-anything maatram, asalu slow ga unna functions ni maatrame Rust loki maarustundi.",
+      "visual": {
+        "type": "bullets",
+        "items": [
+          "scan: find slow functions",
+          "port: only those → Rust",
+          "verify: replay real calls"
+        ]
+      },
+      "transition": "whip",
+      "camera": "pan_left",
+      "keywords": [
+        "fast-anything",
+        "Rust"
+      ]
+    },
+    {
+      "id": 7,
+      "section": "conclusion",
+      "narration_te": "రెండింటిలో ముఖ్యమైనది ఒకటే: AI రాసిన code ని, నిజమైన behaviour తో prove చేయడం.",
+      "caption_roman": "Rendintilo mukhyamainadi okate: AI raasina code ni, nijamaina behaviour tho prove cheyadam.",
+      "visual": {
+        "type": "headline",
+        "text": "Test it. Prove it.",
+        "icon": "check"
+      },
+      "transition": "iris",
+      "camera": "push_in",
+      "keywords": [
+        "AI",
+        "code",
+        "prove"
+      ]
+    },
+    {
+      "id": 8,
+      "section": "cta",
+      "narration_te": "మీరైతే ఏది వాడతారు? Comment లో చెప్పండి!",
+      "caption_roman": "Meeraithe edi vaadathaaru? Comment lo cheppandi!",
+      "visual": {
+        "type": "outro",
+        "cta": "Meeru edi vaadathaaru?",
+        "icon": "code"
+      },
+      "transition": "zoom",
+      "camera": "pull_out"
+    }
+  ],
+  "seo": {
+    "titles": [
+      "rust-anything vs fast-anything: GitHub లో trending Rust tools | Telugu Tech",
+      "మొత్తం app ని Rust లోకి మార్చాలా? 5% చాలా? | GitHub Trending Telugu",
+      "AI తో Rust rewrite — 2 trending GitHub repos explained in Telugu"
+    ],
+    "description_te": "ఈ వారం GitHub లో trend అవుతున్న రెండు open-source tools: rust-anything (మొత్తం app ని Rust లోకి, ప్రతి ముక్కను recording తో check చేస్తూ) మరియు fast-anything (slow గా ఉన్న functions మాత్రమే Rust లోకి). రెండూ MIT license. Numbers repos README ల నుంచి తీసుకున్నాం.",
+    "description_en": "Two trending GitHub repos with opposite philosophies: rust-anything records your app and has an agent rewrite it in Rust piece by piece, checked against the recording (its Prettier port was 19x faster in the author's test); fast-anything ports only the slow functions and verifies them on recorded calls. Star counts as of 25 Nov 2026.",
+    "hashtags": [
+      "#Rust",
+      "#GitHub",
+      "#OpenSource",
+      "#Programming",
+      "#AIcoding",
+      "#TeluguTechKathalu"
+    ],
+    "keywords": [
+      "rust-anything",
+      "fast-anything",
+      "Rust Telugu",
+      "GitHub trending Telugu",
+      "AI coding agent Telugu",
+      "Prettier Rust",
+      "programming Telugu",
+      "Telugu tech"
+    ],
+    "pinned_comment": "మీరైతే: మొత్తం rewrite? లేక slow 5% మాత్రమే? 👇 (Repos links description లో.)",
+    "thumbnail": {
+      "headline": "Rust: All or 5%?",
+      "subline": "2 trending repos",
+      "icon": "code",
+      "concept": "Terminal-green code style, original code icon, 'RUST: ALL OR 5%?' headline. No logos."
+    }
+  }
+}

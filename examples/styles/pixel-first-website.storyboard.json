@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "kind": "short",
+  "topic": "Tech history in pixel art: the story of the world's first website (CERN, 1989-1993)",
+  "title_te": "ప్రపంచంలో మొదటి website కథ",
+  "language": "te-IN",
+  "sources": [
+    {
+      "id": "s1",
+      "url": "https://home.cern/science/computing/the-birth-of-the-web/",
+      "title": "The birth of the Web",
+      "publisher": "CERN (official)",
+      "published": "accessed 2026-11-25",
+      "tier": "primary"
+    },
+    {
+      "id": "s2",
+      "url": "https://home.cern/science/computing/the-birth-of-the-web/short-history-web/",
+      "title": "A short history of the Web",
+      "publisher": "CERN (official)",
+      "published": "accessed 2026-11-25",
+      "tier": "primary"
+    }
+  ],
+  "facts": [
+    {
+      "claim": "Tim Berners-Lee invented the World Wide Web in 1989 while working at CERN.",
+      "source_ids": [
+        "s1"
+      ]
+    },
+    {
+      "claim": "By December 1990 the first browser, website and server were running at CERN; the first website, info.cern.ch, was hosted on a NeXT computer.",
+      "source_ids": [
+        "s1",
+        "s2"
+      ]
+    },
+    {
+      "claim": "The Web was announced to the outside world in August 1991 (6 Aug, alt.hypertext).",
+      "source_ids": [
+        "s2"
+      ]
+    },
+    {
+      "claim": "On 30 April 1993 CERN put the World Wide Web software in the public domain.",
+      "source_ids": [
+        "s1",
+        "s2"
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "id": 1,
+      "section": "hook",
+      "narration_te": "ప్రపంచంలో మొదటి website ఎలా ఉండేదో తెలుసా?",
+      "caption_roman": "Prapanchamlo modati website ela undedo telusaa?",
+      "visual": {
+        "type": "pixel_scene",
+        "scene": "title",
+        "year": "1990",
+        "text": "THE FIRST WEBSITE"
+      },
+      "transition": "fade",
+      "background": "pixel",
+      "keywords": [
+        "website"
+      ]
+    },
+    {
+      "id": 2,
+      "section": "intro",
+      "narration_te": "1989 లో CERN లో పనిచేస్తున్న Tim Berners-Lee, World Wide Web ని ప్రతిపాదించారు.",
+      "caption_roman": "1989 lo CERN lo panichesthunna Tim Berners-Lee, World Wide Web ni prathipaadinchaaru.",
+      "visual": {
+        "type": "pixel_scene",
+        "scene": "crt",
+        "text": "PROPOSAL 1989"
+      },
+      "transition": "push",
+      "background": "pixel",
+      "keywords": [
+        "1989",
+        "CERN"
+      ]
+    },
+    {
+      "id": 3,
+      "section": "background",
+      "narration_te": "1990 డిసెంబర్ లో, ఒక NeXT computer మీద మొదటి website, info.cern.ch పని మొదలుపెట్టింది.",
+      "caption_roman": "1990 December lo, oka NeXT computer meeda modati website, info.cern.ch pani modalupettindi.",
+      "visual": {
+        "type": "pixel_scene",
+        "scene": "crt",
+        "text": "WORLD WIDE WEB"
+      },
+      "transition": "mask",
+      "background": "pixel",
+      "keywords": [
+        "1990",
+        "info.cern.ch"
+      ]
+    },
+    {
+      "id": 4,
+      "section": "background",
+      "narration_te": "1991 ఆగస్టులో ఈ Web గురించి బయట ప్రపంచానికి ప్రకటించారు.",
+      "caption_roman": "1991 Aagastulo ee Web gurinchi bayata prapanchaaniki prakatinchaaru.",
+      "visual": {
+        "type": "pixel_scene",
+        "scene": "network",
+        "text": "AUGUST 1991"
+      },
+      "transition": "push",
+      "background": "pixel",
+      "keywords": [
+        "1991",
+        "Web"
+      ]
+    },
+    {
+      "id": 5,
+      "section": "turning_point",
+      "narration_te": "అసలు మలుపు 1993 లో: CERN, Web software ని అందరికీ ఉచితంగా అందుబాటులో పెట్టింది.",
+      "caption_roman": "Asalu malupu 1993 lo: CERN, Web software ni andariki uchithanga andubaatulo pettindi.",
+      "visual": {
+        "type": "pixel_scene",
+        "scene": "unlock",
+        "text": "APRIL 1993: FREE!"
+      },
+      "transition": "mask",
+      "background": "pixel",
+      "keywords": [
+        "1993",
+        "free"
+      ]
+    },
+    {
+      "id": 6,
+      "section": "explanation",
+      "narration_te": "ఆ నిర్ణయమే Web ని అందరిదిగా మార్చింది.",
+      "caption_roman": "Aa nirnayame Web ni andaridigaa maarchindi.",
+      "visual": {
+        "type": "pixel_scene",
+        "scene": "globe",
+        "text": "WEB FOR EVERYONE"
+      },
+      "transition": "push",
+      "background": "pixel",
+      "keywords": [
+        "Web"
+      ]
+    },
+    {
+      "id": 7,
+      "section": "example",
+      "narration_te": "ఈరోజు మీరు ఈ video చూస్తున్న browser కూడా, ఆ కథకే కొనసాగింపు.",
+      "caption_roman": "Eeroju meeru ee video choosthunna browser kooda, aa kathake konasaagimpu.",
+      "visual": {
+        "type": "pixel_scene",
+        "scene": "phone",
+        "text": "TODAY"
+      },
+      "transition": "mask",
+      "background": "pixel",
+      "keywords": [
+        "browser"
+      ]
+    },
+    {
+      "id": 8,
+      "section": "conclusion",
+      "narration_te": "ఒక్క website తో మొదలైన కథ, ఇప్పుడు మన జేబులో ఉంది.",
+      "caption_roman": "Okka website tho modalaina katha, ippudu mana jebulo undi.",
+      "visual": {
+        "type": "pixel_scene",
+        "scene": "rocket",
+        "text": "FROM 1 SITE..."
+      },
+      "transition": "push",
+      "background": "pixel",
+      "keywords": [
+        "website"
+      ]
+    },
+    {
+      "id": 9,
+      "section": "cta",
+      "narration_te": "ఇంకే tech చరిత్ర కావాలి? Comment చేయండి!",
+      "caption_roman": "Inke tech charithra kaavaali? Comment cheyandi!",
+      "visual": {
+        "type": "pixel_scene",
+        "scene": "title",
+        "year": "YOU?",
+        "text": "COMMENT CHEYANDI!"
+      },
+      "transition": "fade",
+      "background": "pixel"
+    }
+  ],
+  "seo": {
+    "titles": [
+      "ప్రపంచంలో మొదటి Website కథ | Pixel Art Tech History in Telugu",
+      "World Wide Web ఎలా పుట్టింది? CERN, 1989–1993 | Telugu Tech Kathalu",
+      "The First Website Story — Retro Pixel Tech History (Telugu)"
+    ],
+    "description_te": "1989 లో CERN లో Tim Berners-Lee World Wide Web ని ప్రతిపాదించారు. 1990 డిసెంబర్ నాటికి NeXT computer మీద మొదటి website info.cern.ch పనిచేసింది. 1991 ఆగస్టులో బయటి ప్రపంచానికి ప్రకటించారు. 30 ఏప్రిల్ 1993 న CERN Web software ని public domain లో పెట్టింది. Pixel art అంతా original.",
+    "description_en": "The story of the first website in retro pixel art: the Web was invented at CERN in 1989, the first website (info.cern.ch, on a NeXT computer) was running by December 1990, it was announced publicly in August 1991, and on 30 April 1993 CERN put the Web software in the public domain. All pixel art is original.",
+    "hashtags": [
+      "#TechHistory",
+      "#WorldWideWeb",
+      "#CERN",
+      "#PixelArt",
+      "#Internet",
+      "#TeluguTechKathalu"
+    ],
+    "keywords": [
+      "first website Telugu",
+      "World Wide Web history Telugu",
+      "CERN web",
+      "Tim Berners-Lee Telugu",
+      "internet history Telugu",
+      "pixel art tech history"
+    ],
+    "pinned_comment": "తర్వాత ఏ tech చరిత్ర pixel art లో కావాలి? 👇 (first email? first smartphone?)",
+    "thumbnail": {
+      "headline": "The first website",
+      "subline": "pixel history",
+      "icon": "globe",
+      "concept": "Retro pixel palette, CRT green, 'THE FIRST WEBSITE'. Original art only."
+    }
+  }
+}

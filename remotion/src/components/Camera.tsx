@@ -18,8 +18,8 @@ export const cameraTransform = (
   let ry = 0;
   switch (preset) {
     case 'pull_out': scale = z0 + zr * (1 - p) + 0.02; break;
-    case 'pan_left': tx = interpolate(p, [0, 1], [50, -50]) * k; scale = 1.06; break;
-    case 'pan_right': tx = interpolate(p, [0, 1], [-50, 50]) * k; scale = 1.06; break;
+    case 'pan_left': tx = interpolate(p, [0, 1], [32, -32]) * k; scale = 1.04; break;
+    case 'pan_right': tx = interpolate(p, [0, 1], [-32, 32]) * k; scale = 1.04; break;
     case 'orbit': ry = interpolate(p, [0, 1], [-10, 10]) * k; rx = 5 * k; scale = 1.02 + 0.04 * p; break;
     case 'tilt': rx = interpolate(p, [0, 1], [16, 2]) * k; ry = -6 * k; scale = 1 + 0.05 * p; break;
     case 'drift': tx = Math.sin(frame / fps * 0.6) * 20 * k; ty = Math.cos(frame / fps * 0.5) * 16 * k; scale = 1.02; break;
@@ -41,7 +41,7 @@ export const cameraTransform = (
     const chosen: number[] = [];
     for (const f of cutFrames) if (!chosen.length || f - chosen[chosen.length - 1] >= style.subCutSeconds * fps) chosen.push(f);
     const idx = chosen.filter((f) => frame >= f).length;
-    if (idx % 2 === 1) { reframe = 1.09; rox = idx % 4 === 1 ? -26 : 26; }
+    if (idx % 2 === 1) { reframe = 1.07; rox = idx % 4 === 1 ? -18 : 18; }
   }
   const s = (scale + punch) * reframe;
   return {

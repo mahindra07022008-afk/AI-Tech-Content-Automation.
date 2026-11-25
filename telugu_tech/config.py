@@ -107,8 +107,8 @@ class Config:
             problems.append("default_privacy=public but allow_public=false")
         for kind in ("short", "long"):
             v = self.get("video", kind) or {}
-            if v.get("fps") != 30:
-                problems.append(f"video.{kind}.fps must be 30")
+            if v.get("fps") not in (30, 60):
+                problems.append(f"video.{kind}.fps must be 30 or 60")
             if not (0 < v.get("min_seconds", 0) < v.get("max_seconds", 0)):
                 problems.append(f"video.{kind} min/max seconds invalid")
         for key in ("latin_font", "telugu_font"):

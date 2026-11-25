@@ -26,7 +26,7 @@ export type Word = {
 };
 
 export type CaptionStyle = {
-  template: 'pop_highlight' | 'karaoke_line' | 'bold_center';
+  template: 'pop_highlight' | 'karaoke_line' | 'bold_center' | 'pixel_block' | 'hud_bracket' | 'glass_pill';
   position: number; // 0..1 vertical centre of caption block
   fontSize: number; // px at 1080 width
   maxWords: number;
@@ -45,6 +45,10 @@ export type StyleProfile = {
   beatPunch: number; // 0..0.05 scale bump on downbeats
   subCutSeconds: number; // 0 disables punch-in reframes inside long scenes
   caption: CaptionStyle;
+  // editing-style extensions (optional for backwards compatibility)
+  overlay?: string; // film | studio | crt | hud | launch | news | terminal | depth | glass | grid | none
+  font?: string; // display | serif | mono
+  dof?: boolean; // simulated depth of field (background defocus + rack focus)
 };
 
 export type Theme = {
@@ -67,5 +71,8 @@ export type Props = {
   scenes: Scene[];
   words: Word[];
   beats: number[];
-  fonts: {display: string; telugu: string; mono: string; body: string};
+  fonts: {display: string; telugu: string; mono: string; body: string; serif?: string};
+  profile?: 'full' | 'lite'; // lite = no WebGL (CSS/canvas fallbacks for 3D and pixel scenes)
+  channel?: string;
+  dateLabel?: string;
 };

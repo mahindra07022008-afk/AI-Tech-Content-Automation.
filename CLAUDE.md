@@ -17,6 +17,7 @@ telugu_tech/               python package (CLI: `.venv/bin/telugu-tech`)
   visuals.py               classic motion-graphics engine (Pillow+raqm → FFmpeg), captions, transitions
   premium.py               PREMIUM engine: word timings, keywords, beat grid, props → Remotion render, FFmpeg grade, SFX plan
   reference.py             reference MP4 analysis (cuts, motion, colour, caption band, loudness, tempo) → style profile
+  styles.py                12 editing styles (source of truth) + automatic style selection with repetition penalty
   engine.py                MoneyPrinterTurbo final assembly (primary) + logged FFmpeg fallback
   subtitles.py             Telugu Unicode + Roman Telugu SRT
   thumbnail.py / seo.py    thumbnail, Shorts cover, titles/description/hashtags/chapters
@@ -28,7 +29,10 @@ telugu_tech/               python package (CLI: `.venv/bin/telugu-tech`)
   errors.py / db.py        error taxonomy, redaction, bounded retries; SQLite history & checkpoints
 scripts/mpt_llm.py         bridge: runs inside MPT's venv, calls MPT's claude_code provider
 remotion/                  Remotion 4.0.540 project (pinned, package-lock.json): src/components (Camera, Background,
-                           Visuals, Captions, Icons), src/presets (transitions, styles). node_modules + fonts gitignored.
+                           Visuals, Captions, Icons, ThreeD [three.js/R3F phone], Pixel [PixiJS], Overlays [style overlays,
+                           iso_stack]), src/presets (transitions, styles). node_modules + fonts gitignored.
+                           3D rules (from remotion-dev/skills): <ThreeCanvas width height>, animate only via
+                           useCurrentFrame(), never useFrame(), <Sequence layout="none"> inside the canvas.
 .claude/skills/premium-video-editor/  /premium-video-editor skill (analyze-reference, generate, preview, fix-errors, report)
 examples/                  demo storyboard (GitHub explainer Short)
 tests/                     pytest suite (`.venv/bin/pytest -q`; integration tests need ffmpeg)
@@ -50,7 +54,9 @@ Premium engine (`engine.visual_engine: premium`): scene starts are snapped to th
 Edge TTS word boundaries give exact word-by-word caption timing (keep `caption_roman` word-aligned with
 `narration_te`), Remotion renders silent 1080×1920 motion graphics from `premium_props.json`, FFmpeg
 applies the grade (bloom, colour balance, contrast, vignette, grain). Fallback to classic is automatic
-and logged. Style = house preset unless a reference profile (`data/styles/ref-*.json`) is supplied.
+and logged. Style = auto-selected editing style (`styles.py`; storyboard `style` overrides), optionally
+tuned by a reference profile (`data/styles/ref-*.json`). WebGL failures → lite profile → classic, all logged.
+Rollback instructions: `docs/ROLLBACK.md`.
 
 ## Rules
 

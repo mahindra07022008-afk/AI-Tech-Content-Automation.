@@ -3,6 +3,9 @@ import {AbsoluteFill, continueRender, delayRender, Sequence, staticFile, useCurr
 import {Background} from './components/Background';
 import {cameraTransform} from './components/Camera';
 import {Captions} from './components/Captions';
+import {IsoStack, StyleOverlay} from './components/Overlays';
+import {PixelScene} from './components/Pixel';
+import {Phone3D} from './components/ThreeD';
 import {VisualView} from './components/Visuals';
 import {BACKGROUND_FOR, CAMERA_FOR} from './presets/styles';
 import {resolveTransition, transitionStyles} from './presets/transitions';
@@ -13,6 +16,13 @@ const FONT_FILES: Record<string, string> = {
   TTDisplay: 'fonts/NotoSansDisplay-Bold.ttf',
   TTTelugu: 'fonts/NotoSansTelugu-Bold.ttf',
   TTMono: 'fonts/NotoSansMono-Bold.ttf',
+  TTSerif: 'fonts/NotoSerifDisplay-Bold.ttf',
+};
+
+// Style typography: display (default), serif (documentary), mono (code / HUD / pixel). Telugu glyphs fall back to TTTelugu.
+export const fontStack = (p: Props) => {
+  const lead = p.style.font === 'serif' ? 'TTSerif' : p.style.font === 'mono' ? p.fonts.mono : p.fonts.display;
+  return `${lead}, ${p.fonts.telugu}, sans-serif`;
 };
 
 const useFonts = () => {
@@ -62,6 +72,17 @@ const SceneView: React.FC<{scene: Scene; next?: Scene; index: number; p: Props; 
   const tagP = prog(frame, 6, 10);
   // light sweep on hooks / turning points
   const sweep = (scene.section === 'hook' || scene.section === 'turning_point') ? prog(frame, 4, 22) : 1;
+  // simulated depth of field: defocused background + a short rack-focus on the subject at scene start
+  const dof = !!p.style.dof;
+  const rack = dof && index > 0 ? (1 - prog(frame, 0, 12)) * 6 : 0;
+  const lite = p.profile === 'lite';
+  const vt = scene.visual.type;
+  const visual =
+    vt === 'phone3d' ? <Phone3D v={scene.visual} f={frame} dur={sceneFrames} theme={p.theme} lite={lite} fps={fps} />
+      : vt === 'pixel_scene' ? <PixelScene v={scene.visual} f={frame} theme={p.theme} lite={lite} />
+        : vt === 'iso_stack' ? <IsoStack v={scene.visual} f={frame} theme={p.theme} />
+          : <VisualView v={scene.visual} f={frame} dur={sceneFrames} theme={p.theme} fonts={{display: p.fonts.display, mono: p.fonts.mono}}
+              keywords={keywords} fontKind={p.style.font} />;
   return (
     <AbsoluteFill style={style}>
       <svg width={0} height={0} style={{position: 'absolute'}}>
@@ -69,10 +90,16 @@ const SceneView: React.FC<{scene: Scene; next?: Scene; index: number; p: Props; 
           <feGaussianBlur stdDeviation={`${blurX} 0`} />
         </filter>
       </svg>
-      <Background variant={scene.background || BACKGROUND_FOR[scene.visual.type] || 'aurora'} theme={p.theme} seed={index * 7 + 3} px={cam.px} py={cam.py} />
-      <AbsoluteFill style={{transform: cam.transform, transformOrigin: '50% 38%'}}>
-        <VisualView v={scene.visual} f={frame} dur={sceneFrames} theme={p.theme} fonts={{display: p.fonts.display, mono: p.fonts.mono}} keywords={keywords} />
+      <AbsoluteFill style={{filter: dof ? 'blur(3px)' : undefined, transform: dof ? 'scale(1.03)' : undefined}}>
+        <Background variant={scene.background || BACKGROUND_FOR[scene.visual.type] || 'aurora'} theme={p.theme} seed={index * 7 + 3} px={cam.px} py={cam.py} />
       </AbsoluteFill>
+      <AbsoluteFill style={{transform: cam.transform, transformOrigin: '50% 38%', filter: rack > 0.2 ? `blur(${rack.toFixed(2)}px)` : undefined}}>
+        {visual}
+      </AbsoluteFill>
+      {vt === 'outro' && p.channel ? (
+        <div style={{position: 'absolute', top: '56%', width: '100%', textAlign: 'center', fontSize: 50, fontWeight: 900, color: p.theme.accent,
+          opacity: prog(frame, 16, 12), letterSpacing: 2}}>{p.channel}</div>
+      ) : null}
       {tag && (
         <div style={{position: 'absolute', top: '7.5%', width: '100%', display: 'flex', justifyContent: 'center', opacity: tagP * clamp(1 - (frame - sceneFrames) / 6)}}>
           <div style={{padding: '12px 30px', borderRadius: 40, background: hexA(p.theme.primary, 0.85), color: p.theme.text, fontSize: 32, fontWeight: 900,
@@ -90,7 +117,8 @@ export const Main: React.FC<Props> = (p) => {
   useFonts();
   const {fps} = useVideoConfig();
   const tr = Math.round(p.style.transitionSeconds * fps);
-  const font = `${p.fonts.display}, ${p.fonts.telugu}, sans-serif`;
+  const font = fontStack(p);
+  const capFont = p.style.caption.template === 'pixel_block' ? `${p.fonts.mono}, ${p.fonts.telugu}, sans-serif` : `${p.fonts.display}, ${p.fonts.telugu}, sans-serif`;
   return (
     <AbsoluteFill style={{background: p.theme.bgTop, fontFamily: font, color: p.theme.text}}>
       {p.scenes.map((s, i) => {
@@ -103,7 +131,8 @@ export const Main: React.FC<Props> = (p) => {
           </Sequence>
         );
       })}
-      <Captions words={p.words} style={p.style.caption} theme={p.theme} font={font} />
+      {p.style.overlay && p.style.overlay !== 'none' ? <StyleOverlay name={p.style.overlay} theme={p.theme} dateLabel={p.dateLabel} /> : null}
+      <Captions words={p.words} style={p.style.caption} theme={p.theme} font={capFont} />
     </AbsoluteFill>
   );
 };

@@ -4,7 +4,7 @@ import {Theme, Visual} from '../types';
 import {clamp, glow, hexA, P3, prog, project, ramp, rotX, rotY, seeded, smooth, snap} from '../utils';
 import {Icon} from './Icons';
 
-type VP = {v: Visual; f: number; dur: number; theme: Theme; fonts: {display: string; mono: string}; keywords: string[]};
+type VP = {v: Visual; f: number; dur: number; theme: Theme; fonts: {display: string; mono: string}; keywords: string[]; fontKind?: string};
 
 const str = (x: unknown, d = '') => (x === undefined || x === null ? d : String(x));
 const arr = <T,>(x: unknown): T[] => (Array.isArray(x) ? (x as T[]) : []);
@@ -22,12 +22,14 @@ const Box: React.FC<{children: React.ReactNode; style?: React.CSSProperties}> = 
 );
 
 // ---------------------------------------------------------------- kinetic typography
-const Headline: React.FC<VP> = ({v, f, theme, keywords}) => {
+const Headline: React.FC<VP> = ({v, f, theme, keywords, fontKind}) => {
   const {fps} = useVideoConfig();
   const text = str(v.text ?? v.headline);
   const words = text.split(/\s+/).filter(Boolean);
   const kw = new Set(keywords.map((k) => k.toLowerCase()));
-  const size = text.length > 26 ? 92 : text.length > 16 ? 110 : 128;
+  // monospace / serif glyphs are wider than the display face: scale so long headlines never touch the edges
+  const fontScale = fontKind === 'mono' ? 0.78 : fontKind === 'serif' ? 0.92 : 1;
+  const size = (text.length > 26 ? 92 : text.length > 16 ? 110 : 128) * fontScale;
   const icon = str(v.icon);
   const isQ = v.type === 'question' || text.trim().endsWith('?');
   return (
@@ -42,7 +44,9 @@ const Headline: React.FC<VP> = ({v, f, theme, keywords}) => {
         <div style={{fontSize: 260, fontWeight: 900, color: theme.accent, lineHeight: 1, textShadow: glow(theme.accent, 1.2),
           transform: `scale(${0.9 + 0.08 * Math.sin(f / 6)}) rotate(${Math.sin(f / 20) * 6}deg)`, opacity: prog(f, 0, 12), marginBottom: 20}}>?</div>
       )}
-      <div style={{fontSize: size, fontWeight: 900, lineHeight: 1.08, letterSpacing: -1.5, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0 26px'}}>
+      {/* 84% max width: camera push-in + beat punch can zoom ~1.15×, this keeps zoomed text inside the safe area */}
+      <div style={{fontSize: size, fontWeight: 900, lineHeight: 1.08, letterSpacing: -1.5, display: 'flex', flexWrap: 'wrap', justifyContent: 'center',
+        gap: '0 26px', maxWidth: '84%'}}>
         {words.map((w, i) => {
           const start = 4 + i * 5;
           const p = prog(f, start, 9, snap);
@@ -126,7 +130,9 @@ const Chart: React.FC<VP> = ({v, f, theme}) => {
           {pts.map((q, i) => (
             <g key={i} opacity={clamp((p * data.length - i) * 2)}>
               <circle cx={q.x} cy={q.y} r={14} fill={theme.highlight} />
-              <text x={q.x} y={q.y - 30} textAnchor="middle" fill={theme.text} fontSize={40} fontWeight={800}>{data[i].value}{unit}</text>
+              {v.hideValues ? null : (
+                <text x={q.x} y={q.y - 30} textAnchor="middle" fill={theme.text} fontSize={40} fontWeight={800}>{data[i].value}{unit}</text>
+              )}
               <text x={q.x} y={H - 10} textAnchor="middle" fill={hexA(theme.text, 0.8)} fontSize={34} fontWeight={700}>{data[i].label}</text>
             </g>
           ))}
@@ -163,7 +169,9 @@ const Stat: React.FC<VP> = ({v, f, theme}) => {
   if (m) {
     const target = parseFloat(m[2].replace(/,/g, ''));
     const dec = m[2].includes('.') ? m[2].split('.')[1].length : 0;
-    shown = `${m[1]}${(target * p).toFixed(dec)}${m[3]}`;
+    const n = target * p;
+    const body = m[2].includes(',') ? Math.round(n).toLocaleString('en-US') : n.toFixed(dec); // keep thousands separators
+    shown = `${m[1]}${body}${m[3]}`;
   }
   const R = 330;
   return (
@@ -339,7 +347,7 @@ const IconGrid: React.FC<VP> = ({v, f, theme}) => {
 const Bullets: React.FC<VP> = ({v, f, theme}) => {
   const items = arr<string>(v.items);
   return (
-    <Box style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 34}}>
+    <Box style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 34, left: '10%', right: '8%'}}>
       {items.map((it, i) => {
         const p = prog(f, i * 10, 12, snap);
         return (
