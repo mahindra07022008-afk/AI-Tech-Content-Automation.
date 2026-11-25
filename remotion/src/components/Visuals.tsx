@@ -222,6 +222,10 @@ const ChatUI: React.FC<VP> = ({v, f, theme}) => {
 const Code: React.FC<VP> = ({v, f, theme, fonts}) => {
   const lines = arr<string>(v.lines);
   const suggestion = arr<string>(v.suggestion);
+  // Auto-fit: monospace glyphs are ~0.6em wide; keep the longest line (+2-char gutter) inside the
+  // panel's ~776px text area (with margin for the 3D tilt) so code is never clipped.
+  const longest = Math.max(1, ...[...lines, ...suggestion].map((l) => l.length));
+  const fs = Math.min(46, Math.floor(776 / ((longest + 2) * 0.6)));
   let budget = Math.max(0, (f - 8) * 1.4);
   const accepted = f > 8 + (lines.join('').length / 1.4) + 30;
   return (
@@ -230,21 +234,22 @@ const Code: React.FC<VP> = ({v, f, theme, fonts}) => {
         transform: `rotateX(${14 - 10 * prog(f, 0, 60, smooth)}deg) rotateY(-10deg)`, transformStyle: 'preserve-3d'}}>
         <div style={{display: 'flex', gap: 14, marginBottom: 26}}>
           {['#ff5f56', '#ffbd2e', '#27c93f'].map((c) => <div key={c} style={{width: 22, height: 22, borderRadius: 11, background: c}} />)}
-          <div style={{marginLeft: 20, color: hexA(theme.text, 0.6), fontSize: 34, fontFamily: fonts.display}}>{str(v.filename, 'main.py')}</div>
+          <div style={{marginLeft: 20, color: hexA(theme.text, 0.6), fontSize: 34, fontFamily: fonts.display, overflow: 'hidden',
+            textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1}}>{str(v.filename, 'main.py')}</div>
         </div>
         {lines.map((line, i) => {
           const shown = line.slice(0, Math.max(0, Math.floor(budget)));
           budget -= line.length + 3;
           const comment = line.trim().startsWith('#') || line.trim().startsWith('//');
           return (
-            <div key={i} style={{fontSize: 46, lineHeight: 1.55, color: comment ? '#94a3b8' : theme.text, whiteSpace: 'pre'}}>
+            <div key={i} style={{fontSize: fs, lineHeight: 1.55, color: comment ? '#94a3b8' : theme.text, whiteSpace: 'pre'}}>
               <span style={{color: hexA(theme.text, 0.3), marginRight: 24}}>{String(i + 1).padStart(2, ' ')}</span>{shown}
               {budget > -line.length - 3 && budget <= 0 && Math.floor(f / 8) % 2 === 0 ? <span style={{background: theme.highlight}}>&nbsp;</span> : null}
             </div>
           );
         })}
         {suggestion.map((line, i) => (
-          <div key={`s${i}`} style={{fontSize: 46, lineHeight: 1.55, whiteSpace: 'pre', color: accepted ? theme.accent : hexA(theme.text, 0.35),
+          <div key={`s${i}`} style={{fontSize: fs, lineHeight: 1.55, whiteSpace: 'pre', color: accepted ? theme.accent : hexA(theme.text, 0.35),
             opacity: budget > 0 ? 1 : 0, textShadow: accepted ? glow(theme.accent, 0.4) : undefined}}>
             <span style={{color: hexA(theme.text, 0.3), marginRight: 24}}>{String(lines.length + i + 1).padStart(2, ' ')}</span>{line}
           </div>
