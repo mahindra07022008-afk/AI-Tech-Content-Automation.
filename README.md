@@ -61,6 +61,8 @@ telugu-tech premium generate --storyboard examples/demo_ai_future_premium.storyb
 telugu-tech premium preview --job my-short
 telugu-tech premium report
 ```
+Dependency audit: `docs/DEPENDENCIES.md`. Rollback: `docs/ROLLBACK.md`.
+
 Remotion licence: free for individuals and companies with up to 3 employees (larger companies need a company licence).
 
 ### 12 editing styles (auto-selected per topic)
